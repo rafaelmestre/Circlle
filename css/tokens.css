@@ -1,0 +1,191 @@
+/* ==========================================================
+   Circlle — Design tokens
+   Base visual do app: cores, tipografia, raios, sombras e espaçamentos.
+   Modo escuro é o padrão; o claro segue o sistema ou data-theme="light".
+   ========================================================== */
+
+:root {
+  /* ---------- Marca ---------- */
+  --brand-purple: #8b3dff;
+  --brand-blue: #3b82f6;
+  --brand-cyan: #22d3ee;
+  --brand-orange: #fb923c;
+
+  --gradient-brand: linear-gradient(135deg, var(--brand-purple) 0%, var(--brand-blue) 55%, var(--brand-cyan) 100%);
+  --gradient-brand-soft: linear-gradient(135deg, rgb(139 61 255 / 0.18), rgb(34 211 238 / 0.18));
+
+  /* ---------- Status da escala ---------- */
+  --status-confirmed: #22c55e;   /* confirmado */
+  --status-pending: #fb923c;     /* pendente */
+  --status-reassign: #8b3dff;    /* remanejamento */
+  --status-declined: #f43f5e;    /* recusa ou falta */
+
+  /* ---------- Superfícies e texto (escuro, padrão) ---------- */
+  --bg: #0f1b33;
+  --surface: #1a2847;
+  --surface-raised: #213259;
+  --border: #26365a;
+  --text: #f1f5f9;
+  --text-muted: #94a3b8;
+  --text-on-brand: #ffffff;
+  --focus-ring: 0 0 0 3px rgb(59 130 246 / 0.55);
+
+  /* ---------- Tipografia ---------- */
+  --font-sans: "Poppins", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-size-xs: 0.75rem;
+  --font-size-sm: 0.875rem;
+  --font-size-md: 1rem;
+  --font-size-lg: 1.25rem;
+  --font-size-xl: 1.75rem;
+  --font-size-2xl: 2.25rem;
+  --font-weight-regular: 400;
+  --font-weight-medium: 500;
+  --font-weight-bold: 700;
+
+  /* ---------- Raios (tudo bem arredondado) ---------- */
+  --radius-sm: 10px;
+  --radius-md: 16px;
+  --radius-lg: 24px;
+  --radius-pill: 999px;
+  --radius-circle: 50%;
+
+  /* ---------- Espaçamentos ---------- */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 48px;
+
+  /* ---------- Sombras e movimento ---------- */
+  --shadow-card: 0 8px 24px rgb(0 0 0 / 0.28);
+  --shadow-glow: 0 8px 28px rgb(139 61 255 / 0.35);
+  --transition: 180ms ease;
+
+  color-scheme: dark;
+}
+
+/* ---------- Modo claro: segue o sistema, salvo escolha manual ---------- */
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) {
+    --bg: #f5f7fb;
+    --surface: #ffffff;
+    --surface-raised: #eef2ff;
+    --border: #e2e8f0;
+    --text: #0f1b33;
+    --text-muted: #5b6b85;
+    --shadow-card: 0 8px 24px rgb(15 27 51 / 0.08);
+    --shadow-glow: 0 8px 28px rgb(139 61 255 / 0.22);
+    color-scheme: light;
+  }
+}
+
+:root[data-theme="light"] {
+  --bg: #f5f7fb;
+  --surface: #ffffff;
+  --surface-raised: #eef2ff;
+  --border: #e2e8f0;
+  --text: #0f1b33;
+  --text-muted: #5b6b85;
+  --shadow-card: 0 8px 24px rgb(15 27 51 / 0.08);
+  --shadow-glow: 0 8px 28px rgb(139 61 255 / 0.22);
+  color-scheme: light;
+}
+
+/* ---------- Acessibilidade: menos movimento ---------- */
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --transition: 0ms;
+  }
+}
+
+/* ==========================================================
+   Componentes base
+   ========================================================== */
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-sans);
+  font-size: var(--font-size-md);
+  line-height: 1.5;
+}
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-card);
+  padding: var(--space-5);
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  min-height: 48px;
+  padding: 0 var(--space-6);
+  border: 0;
+  border-radius: var(--radius-pill);
+  font: inherit;
+  font-weight: var(--font-weight-medium);
+  cursor: pointer;
+  transition: transform var(--transition), box-shadow var(--transition);
+}
+
+.btn:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+.btn-primary {
+  background: var(--gradient-brand);
+  color: var(--text-on-brand);
+  box-shadow: var(--shadow-glow);
+}
+
+.btn-primary:active {
+  transform: scale(0.97);
+}
+
+.btn-ghost {
+  background: var(--surface-raised);
+  color: var(--text);
+}
+
+.icon-circle {
+  display: inline-grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-circle);
+  border: 1px solid var(--border);
+  background: var(--surface-raised);
+  color: var(--text);
+}
+
+.text-gradient {
+  background: var(--gradient-brand);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* Etiquetas de status da escala */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: 2px var(--space-3);
+  border-radius: var(--radius-pill);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+}
+
+.badge--confirmed { color: var(--status-confirmed); background: rgb(34 197 94 / 0.15); }
+.badge--pending   { color: var(--status-pending);   background: rgb(251 146 60 / 0.15); }
+.badge--reassign  { color: var(--status-reassign);  background: rgb(139 61 255 / 0.15); }
+.badge--declined  { color: var(--status-declined);  background: rgb(244 63 94 / 0.15); }

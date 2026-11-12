@@ -75,6 +75,26 @@ Os papéis são definidos **por equipe**: a mesma pessoa pode ser líder na mús
 
 ---
 
+## 🎨 Identidade visual
+
+Modo escuro como padrão, gradiente vibrante e formas arredondadas, com o **círculo** como elemento central da marca. Os tokens ficam em [`css/tokens.css`](css/tokens.css), com modo claro automático.
+
+| Papel | Cor |
+|---|---|
+| Gradiente da marca | `#8B3DFF` → `#3B82F6` → `#22D3EE` |
+| Fundo / cards (escuro) | `#0F1B33` / `#1A2847` |
+| Fundo / cards (claro) | `#F5F7FB` / `#FFFFFF` |
+| Destaque | `#FB923C` |
+
+| Status da escala | Cor |
+|---|---|
+| Confirmado | `#22C55E` |
+| Pendente | `#FB923C` |
+| Remanejamento | `#8B3DFF` |
+| Recusa ou falta | `#F43F5E` |
+
+---
+
 ## 🛠️ Tecnologias previstas
 
 - **PWA** instalável, com notificações push gratuitas
