@@ -1,4 +1,6 @@
-# ⭕ Circlle
+<p align="center"><img src="assets/logo/circlle-gradiente.svg" width="140" alt="Logo do Circlle"></p>
+
+<h1 align="center">Circlle</h1>
 
 > Escalas de voluntários sem planilha e sem grupo de WhatsApp bagunçado: monte a escala, envie o repertório, receba confirmações e acompanhe a evolução da equipe. Um PWA gratuito para igrejas, bandas, corais, ONGs e qualquer grupo que se organiza em escalas.
 
@@ -77,7 +79,9 @@ Os papéis são definidos **por equipe**: a mesma pessoa pode ser líder na mús
 
 ## 🎨 Identidade visual
 
-Modo escuro como padrão, gradiente vibrante e formas arredondadas, com o **círculo** como elemento central da marca. Os tokens ficam em [`css/tokens.css`](css/tokens.css), com modo claro automático.
+Modo escuro como padrão, gradiente vibrante e formas arredondadas, com o **círculo** como elemento central da marca.
+
+O símbolo é um **"C" envolvido por um círculo**: a equipe no centro e as pessoas ao redor, girando como o rodízio da escala. As versões (gradiente, cor única, branca, escura e ícone do app) ficam em [`assets/logo/`](assets/logo/), e os ícones do PWA em [`icons/`](icons/). Os tokens ficam em [`css/tokens.css`](css/tokens.css), com modo claro automático.
 
 | Papel | Cor |
 |---|---|
