@@ -19,13 +19,15 @@ Oferecer gratuitamente a organizações pequenas, de periferia e de baixa renda 
 | Evento | Culto | Show, ação social |
 | Função | Vocal, teclado | Guitarra, recepção |
 
+Os termos neutros são o padrão. Na criação da organização, o administrador pode renomeá-los (ex.: "Equipe" vira "Ministério" e "Evento" vira "Culto"). A estrutura por baixo é a mesma; muda apenas o que aparece na tela.
+
 ## 4. Perfis de usuário
 
 Os papéis são atribuídos por equipe: uma mesma pessoa pode ser líder em uma equipe e membro em outra.
 
 - **Administrador:** cria a organização e as equipes, define líderes.
 - **Líder de equipe:** monta escalas, aprova membros e remanejamentos, acompanha desempenho, publica avisos.
-- **Responsável pelo repertório:** monta e envia o repertório; pode ser o próprio líder ou alguém delegado, inclusive por evento.
+- **Responsável pelo repertório:** monta e envia o repertório; pode ser o próprio líder ou alguém delegado, inclusive por evento. Existe apenas em equipes com o módulo de repertório ativo.
 - **Membro:** vê suas escalas, marca indisponibilidade, confirma presença e pede remanejamento.
 
 ## 5. Requisitos funcionais
@@ -57,6 +59,8 @@ Os papéis são atribuídos por equipe: uma mesma pessoa pode ser líder em uma 
 
 ### 5.5 Repertório (módulo opcional por equipe)
 
+Ativado ou desativado na criação ou edição da equipe. Com o módulo desativado (ex.: recepção, ONG, limpeza), a aba de repertório e o papel de responsável pelo repertório não aparecem para aquela equipe.
+
 - RF14: Montar repertório por evento com nome, artista, tom, link (YouTube/Spotify) e cifra.
 - RF15: Botão "ver cifra" que abre a busca da música no Cifra Club (o app não copia conteúdo de terceiros).
 - RF16: Colar ou escrever cifras próprias (formato ChordPro), salvas no banco de músicas privado da organização.
@@ -84,7 +88,12 @@ Os papéis são atribuídos por equipe: uma mesma pessoa pode ser líder em uma 
 ### 5.10 Relatórios
 
 - RF25: Frequência por membro: vezes escalado, confirmações e faltas.
-- RF26: Músicas mais tocadas, data da última execução e músicas esquecidas há muito tempo.
+- RF26: Músicas mais tocadas, data da última execução e músicas esquecidas há muito tempo (somente equipes com repertório ativo).
+
+### 5.11 Personalização
+
+- RF27: Ativar ou desativar módulos por equipe (inicialmente, o repertório). Novos módulos opcionais, como checklist de tarefas, poderão ser adicionados no futuro.
+- RF28: O administrador renomeia os termos padrão (organização, equipe, evento, função) para a linguagem da organização.
 
 ## 6. Regras de negócio
 
@@ -93,6 +102,8 @@ Os papéis são atribuídos por equipe: uma mesma pessoa pode ser líder em uma 
 - RN03: O banco de cifras é privado por organização; não existe biblioteca pública.
 - RN04: Quem decide remanejamentos é sempre o líder.
 - RN05: Um membro pode participar de várias equipes e organizações com papéis diferentes.
+- RN06: Módulos são definidos por equipe, não por organização: a mesma organização pode ter equipes com e sem repertório.
+- RN07: Nomenclaturas personalizadas alteram apenas os rótulos exibidos; regras, permissões e dados são os mesmos para todas as organizações.
 
 ## 7. Requisitos não funcionais
 
@@ -104,6 +115,6 @@ Os papéis são atribuídos por equipe: uma mesma pessoa pode ser líder em uma 
 
 ## 8. Etapas de entrega
 
-1. **Etapa 1 (MVP):** organizações, equipes, convites, escalas com confirmação, repertório e notificações.
+1. **Etapa 1 (MVP):** organizações, equipes com módulos opcionais, nomenclatura personalizável, convites, escalas com confirmação, repertório e notificações.
 2. **Etapa 2:** remanejamento, ensaios, calendário unificado e mural de avisos.
 3. **Etapa 3:** sugestão automática de escala, desempenho, relatórios, sincronização de agenda e transposição de cifras.

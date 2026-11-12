@@ -34,7 +34,7 @@ Ferramentas de gestão costumam ser caras e feitas para grandes organizações. 
 - **Pedido de remanejamento** em vez de recusa: o membro indica o dia, o motivo e até quem pode trocar com ele, e a vaga só muda quando o líder aprova
 - **Ensaios** vinculados a um evento ou avulsos
 
-**Repertório** (módulo opcional por equipe)
+**Repertório** (módulo opcional, ativado por equipe: a de louvor usa, a de recepção não)
 - Música, artista, tom, link do YouTube/Spotify e cifra
 - Atalho para a cifra no Cifra Club e **banco de cifras privado** da organização
 - **Transposição de tom** automática para cifras salvas (formato ChordPro)
@@ -60,6 +60,8 @@ Ferramentas de gestão costumam ser caras e feitas para grandes organizações. 
 | Evento | Culto | Show, ação social |
 | Função | Vocal, teclado | Guitarra, recepção |
 
+Os termos neutros são o padrão, e **cada organização pode renomeá-los** para a sua própria linguagem.
+
 ## 👥 Perfis
 
 Os papéis são definidos **por equipe**: a mesma pessoa pode ser líder na música e membro na recepção.
@@ -68,7 +70,7 @@ Os papéis são definidos **por equipe**: a mesma pessoa pode ser líder na mús
 |---|---|
 | **Administrador** | Cria a organização, as equipes e define os líderes |
 | **Líder de equipe** | Monta escalas, aprova membros e remanejamentos, acompanha o desempenho |
-| **Responsável pelo repertório** | Monta e envia as músicas; pode ser o líder ou alguém delegado por evento |
+| **Responsável pelo repertório** | Monta e envia as músicas; pode ser o líder ou alguém delegado por evento. Só existe em equipes com repertório ativo |
 | **Membro** | Vê suas escalas, marca indisponibilidade, confirma presença e pede remanejamento |
 
 ---
@@ -85,6 +87,7 @@ Os papéis são definidos **por equipe**: a mesma pessoa pode ser líder na mús
 
 **Etapa 1: MVP**
 - [ ] Organizações, equipes e convites
+- [ ] Módulos opcionais por equipe e nomenclatura personalizável
 - [ ] Escalas com confirmação de presença
 - [ ] Repertório
 - [ ] Notificações
