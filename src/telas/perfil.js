@@ -1,5 +1,6 @@
 import { supabase } from '../lib/supabase.js';
 import { escapar, iniciais, casca, icone, vazio, aviso, traduzirErro, comBotao } from '../lib/ui.js';
+import { estadoNotificacoes, ativarNotificacoes, desativarNotificacoes } from '../lib/notificacoes.js';
 
 // Perfil: nome, departamentos e o que faz em cada um (RF02, RF03, RF04)
 export async function telaPerfil(ctx, recarregarContexto) {
@@ -14,6 +15,8 @@ export async function telaPerfil(ctx, recarregarContexto) {
   const minhas = new Set((minhasRes.data ?? []).map((m) => m.funcao_id));
   const funcoesPorDep = {};
   for (const f of funcoesRes.data ?? []) (funcoesPorDep[f.departamento_id] ??= []).push(f);
+
+  const push = await estadoNotificacoes();
 
   casca(ctx, 'perfil', `
     <main class="tela tela--com-nav">
@@ -56,6 +59,12 @@ export async function telaPerfil(ctx, recarregarContexto) {
         <a class="btn btn-ghost" href="#/entrar">${icone.mais()} Entrar com código</a>
       </section>
 
+      ${push === 'sem_configuracao' ? '' : `
+        <section class="secao">
+          <h2>Notificações</h2>
+          <div class="card" id="notificacoes">${blocoNotificacoes(push)}</div>
+        </section>`}
+
       <section class="secao">
         <h2>Conta</h2>
         <button class="btn btn-ghost" id="sair">Sair</button>
@@ -86,11 +95,57 @@ export async function telaPerfil(ctx, recarregarContexto) {
     })
   );
 
-  document.querySelector('#sair').addEventListener('click', () => supabase.auth.signOut());
+  // Notificações deste aparelho (RF36)
+  const caixaPush = document.querySelector('#notificacoes');
+  const ligarPush = () => caixaPush?.querySelector('#push')?.addEventListener('change', async (e) => {
+    const campo = e.currentTarget;
+    campo.disabled = true;
+    const { error } = campo.checked ? await ativarNotificacoes() : await desativarNotificacoes();
+    if (error) {
+      aviso(error.message === 'Notificações bloqueadas'
+        ? 'As notificações estão bloqueadas. Libere nas configurações do navegador.'
+        : 'Não foi possível mudar agora. Tente de novo.');
+    } else {
+      aviso(campo.checked ? 'Notificações ativadas neste aparelho.' : 'Notificações desativadas neste aparelho.');
+    }
+    caixaPush.innerHTML = blocoNotificacoes(await estadoNotificacoes());
+    ligarPush();
+  });
+  ligarPush();
+
+  // Ao sair, o aparelho para de receber os avisos desta conta
+  document.querySelector('#sair').addEventListener('click', async (e) => {
+    await comBotao(e.currentTarget, () => desativarNotificacoes().catch(() => {}));
+    supabase.auth.signOut();
+  });
   document.querySelector('#excluir').addEventListener('click', async (e) => {
     if (!confirm('Excluir sua conta e todos os seus dados? Isso não pode ser desfeito.')) return;
     const { error } = await comBotao(e.currentTarget, () => supabase.rpc('excluir_minha_conta'));
     if (error) return aviso(traduzirErro(error));
     await supabase.auth.signOut();
   });
+}
+
+// Estado das notificações neste aparelho
+function blocoNotificacoes(estado) {
+  if (estado === 'instalar') {
+    return `
+      <p class="texto-fraco">No iPhone, as notificações funcionam com o Circlle instalado:
+      toque em <b>Compartilhar</b>, depois em <b>Adicionar à Tela de Início</b>, e abra pelo ícone.</p>`;
+  }
+  if (estado === 'indisponivel') {
+    return '<p class="texto-fraco">Este navegador não recebe notificações. Instale o Circlle ou use o Chrome, Edge ou Safari atualizado.</p>';
+  }
+  if (estado === 'bloqueado') {
+    return '<p class="texto-fraco">As notificações estão bloqueadas para o Circlle. Libere nas configurações do navegador e volte aqui.</p>';
+  }
+  return `
+    <label class="toggle">
+      <input type="checkbox" id="push" ${estado === 'ativo' ? 'checked' : ''} />
+      <span class="toggle__trilho" aria-hidden="true"></span>
+      <span>
+        <strong>Avisos neste aparelho</strong>
+        <small>Prévia, escala publicada, datas abertas e pedidos de ajuste.</small>
+      </span>
+    </label>`;
 }

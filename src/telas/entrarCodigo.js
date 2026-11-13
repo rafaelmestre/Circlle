@@ -1,4 +1,5 @@
 import { supabase } from '../lib/supabase.js';
+import { notificar } from '../lib/notificacoes.js';
 import { app, escapar, botaoVoltar, traduzirErro, mostrarErro, limparMsg, comBotao, aviso } from '../lib/ui.js';
 
 // Normaliza o que a pessoa digitou: "har mus2" → "HAR-MUS2"
@@ -103,6 +104,7 @@ export function telaEntrarCodigo(ctx, aoEntrar) {
         supabase.rpc('entrar_departamento', { p_codigo: departamento.codigo, p_funcoes: [...escolhidas] })
       );
       if (error) return mostrarErro(pedir, traduzirErro(error));
+      notificar('pedido_entrada', { departamento_id: departamento.id });
       aviso(`Pedido enviado! Agora é só o coordenador de ${departamento.nome} aprovar.`);
       aoEntrar();
     });

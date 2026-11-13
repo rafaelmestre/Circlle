@@ -13,18 +13,23 @@
 
   --gradient-brand: linear-gradient(135deg, var(--brand-purple) 0%, var(--brand-blue) 55%, var(--brand-cyan) 100%);
   --gradient-brand-soft: linear-gradient(135deg, rgb(139 61 255 / 0.18), rgb(34 211 238 / 0.18));
+  /* Cor sólida da marca (entre o roxo e o azul) para ações; o gradiente fica para logo, destaque e código */
+  --brand-solid: #6d5cf6;
+  --brand-solid-hover: #5f4ee8;
+  --accent-tint: rgb(109 92 246 / 0.16);
+  --accent-text: #b4a9ff;
 
   /* ---------- Status da escala ---------- */
   --status-confirmed: #22c55e;   /* confirmado */
   --status-pending: #fb923c;     /* pendente */
-  --status-reassign: #8b3dff;    /* remanejamento */
-  --status-declined: #f43f5e;    /* recusa ou falta */
+  --status-reassign: #8b3dff;    /* prévia */
+  --status-declined: #f43f5e;    /* pediu ajuste */
 
   /* ---------- Superfícies e texto (escuro, padrão) ---------- */
   --bg: #0f1b33;
   --surface: #1a2847;
   --surface-raised: #213259;
-  --border: #26365a;
+  --border: #223154;
   --text: #f1f5f9;
   --text-muted: #94a3b8;
   --text-on-brand: #ffffff;
@@ -40,6 +45,7 @@
   --font-size-2xl: 2.25rem;
   --font-weight-regular: 400;
   --font-weight-medium: 500;
+  --font-weight-semibold: 600;
   --font-weight-bold: 700;
 
   /* ---------- Raios (tudo bem arredondado) ---------- */
@@ -59,8 +65,10 @@
   --space-7: 48px;
 
   /* ---------- Sombras e movimento ---------- */
-  --shadow-card: 0 8px 24px rgb(0 0 0 / 0.28);
-  --shadow-glow: 0 8px 28px rgb(139 61 255 / 0.35);
+  /* Minimalista: sem brilho; profundidade vem da cor da superfície */
+  --shadow-card: none;
+  --shadow-glow: none;
+  --shadow-float: 0 8px 24px rgb(0 0 0 / 0.28);
   --transition: 180ms ease;
 
   color-scheme: dark;
@@ -75,8 +83,10 @@
     --border: #e2e8f0;
     --text: #0f1b33;
     --text-muted: #5b6b85;
-    --shadow-card: 0 8px 24px rgb(15 27 51 / 0.08);
-    --shadow-glow: 0 8px 28px rgb(139 61 255 / 0.22);
+    --shadow-card: none;
+    --shadow-glow: none;
+    --shadow-float: 0 8px 24px rgb(15 27 51 / 0.12);
+    --accent-text: #5b4ae0;
     color-scheme: light;
   }
 }
@@ -88,8 +98,10 @@
   --border: #e2e8f0;
   --text: #0f1b33;
   --text-muted: #5b6b85;
-  --shadow-card: 0 8px 24px rgb(15 27 51 / 0.08);
-  --shadow-glow: 0 8px 28px rgb(139 61 255 / 0.22);
+  --shadow-card: none;
+  --shadow-glow: none;
+  --shadow-float: 0 8px 24px rgb(15 27 51 / 0.12);
+  --accent-text: #5b4ae0;
   color-scheme: light;
 }
 

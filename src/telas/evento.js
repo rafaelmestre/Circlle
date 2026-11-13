@@ -1,7 +1,8 @@
 import { supabase } from '../lib/supabase.js';
+import { notificar } from '../lib/notificacoes.js';
 import {
   escapar, iniciais, formatarData, casca, icone, botaoVoltar, vazio, aviso, traduzirErro, comBotao,
-  nomesFuncoes, badgeResposta, STATUS_EVENTO
+  nomesFuncoes, badgeResposta, STATUS_EVENTO, linkWhats, textoEscala
 } from '../lib/ui.js';
 
 // Evento: o coordenador monta a escala em 3 passos (RF22, RF24);
@@ -58,6 +59,13 @@ function equipePorFuncao(escalas, euId) {
       </div>
     </div>`).join('');
 }
+
+// Compartilhar a escala no grupo do WhatsApp (RF32)
+const botaoWhats = (ev, dep, escalas) => `
+  <a class="btn btn-ghost" target="_blank" rel="noopener"
+     href="${linkWhats(`${textoEscala(ev, dep.nome, escalas)}\n\n${ev.status === 'previa' ? 'Confira' : 'Confirme'} no Circlle: ${location.origin}/#/evento/${ev.id}`)}">
+    ${icone.whats()} Mandar no WhatsApp
+  </a>`;
 
 // ==========================================================
 // Membro: prévia ou escala publicada, com resposta
@@ -131,6 +139,7 @@ async function verEscala(ctx, ev, dep) {
           <section class="secao">
             <h2>${previa ? 'Quem está na prévia' : 'Equipe'}</h2>
             ${equipePorFuncao(escalas, ctx.usuario.id)}
+            ${botaoWhats(ev, dep, escalas)}
           </section>` : ''}
       </main>`);
 
@@ -166,6 +175,7 @@ async function verEscala(ctx, ev, dep) {
       const { error } = await comBotao(e.currentTarget.querySelector('button'), () =>
         supabase.rpc('responder_escala', { p_evento: ev.id, p_resposta: 'ajuste', p_motivo: motivo }));
       if (error) return aviso(traduzirErro(error));
+      notificar('ajuste', { evento_id: ev.id });
       aviso('Pedido enviado ao coordenador.');
       verEscala(ctx, ev, dep);
     });
@@ -345,7 +355,13 @@ async function montarEscala(ctx, ev, dep) {
         </div>` : ''}
       ${escolha.size ? '' : vazio('Ninguém escolhido ainda.')}
 
-      <button class="btn btn-ghost" data-ir="1">Editar equipe</button>`;
+      <div class="acoes">
+        <button class="btn btn-ghost" data-ir="1">Editar equipe</button>
+        ${jaEnviada && escolha.size ? botaoWhats(ev, dep, [...escolha].map(([uid, ids]) => ({
+          perfis: { nome: pessoa[uid].nome },
+          escala_funcoes: [...ids].map((fid) => ({ funcoes: { nome: nomeFuncao[fid] } }))
+        }))) : ''}
+      </div>`;
   };
 
   const barra = () => {
@@ -416,14 +432,14 @@ async function montarEscala(ctx, ev, dep) {
     }
 
     // Quem teve a função mudada ou pediu ajuste volta a confirmar
-    const reconfirmar = ficam.filter((uid) => {
-      const e = existentes.get(uid);
-      if (!e) return false;
-      const antes = new Set((e.escala_funcoes ?? []).map((f) => f.funcao_id));
+    const mudouFuncao = (uid) => {
+      const antes = new Set((existentes.get(uid).escala_funcoes ?? []).map((f) => f.funcao_id));
       const agora = escolha.get(uid);
-      const mudou = antes.size !== agora.size || [...agora].some((id) => !antes.has(id));
-      return e.resposta === 'ajuste' || (mudou && e.resposta !== 'pendente');
-    });
+      return antes.size !== agora.size || [...agora].some((id) => !antes.has(id));
+    };
+    const alterados = ficam.filter((uid) => existentes.has(uid)
+      && (existentes.get(uid).resposta === 'ajuste' || mudouFuncao(uid)));
+    const reconfirmar = alterados.filter((uid) => existentes.get(uid).resposta !== 'pendente');
     if (reconfirmar.length) {
       const r = await supabase.from('escalas').update({ resposta: 'pendente', motivo: null, respondido_em: null })
         .eq('evento_id', ev.id).in('usuario_id', reconfirmar);
@@ -444,6 +460,14 @@ async function montarEscala(ctx, ev, dep) {
     if (status !== ev.status) {
       const r = await supabase.from('eventos').update({ status }).eq('id', ev.id);
       if (r.error) return r;
+    }
+
+    // Avisos: quando a escala sai (prévia ou publicação), todos os escalados;
+    // depois disso, só quem entrou ou teve a função trocada
+    const saiu = ['previa', 'publicado'].includes(status) && status !== ev.status;
+    if (saiu) notificar('escala', { eventos: [ev.id] });
+    else if (jaEnviada && (novos.length || alterados.length)) {
+      notificar('escala_alterada', { evento_id: ev.id, usuarios: [...novos, ...alterados] });
     }
     return { error: null };
   };

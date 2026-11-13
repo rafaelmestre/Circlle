@@ -74,7 +74,7 @@ function rotear() {
     case 'perfil':
       return telaPerfil(ctx, atualizar);
     case 'org':
-      return telaOrganizacao(ctx, id);
+      return telaOrganizacao(ctx, id, atualizar);
     case 'plataforma':
       return telaPlataforma(ctx);
     default:
@@ -99,6 +99,13 @@ window.addEventListener('hashchange', () => {
   } else {
     rotear();
   }
+});
+
+// Toque numa notificação com o app já aberto: vai para a tela do aviso
+navigator.serviceWorker?.addEventListener('message', (e) => {
+  if (e.data?.tipo !== 'abrir') return;
+  const destino = new URL(e.data.url, location.origin);
+  if (destino.origin === location.origin) location.hash = destino.hash || '#/';
 });
 
 supabase.auth.onAuthStateChange((evento, sessao) => {

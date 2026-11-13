@@ -1,7 +1,9 @@
 # Circlle — Documentação do Projeto
 
-*Um produto Codemancer Studio · versão 3 (nov/2026)*
+*Um produto Codemancer Studio · versão 4 (nov/2026)*
 
+> **O que mudou na v4:** **notificações no celular** (datas abertas, prévia, escala publicada, mudanças na escala, pedidos de entrada e de ajuste), **nomes no app** definidos pelo grupo (rótulos), departamento **renomeado, desativado e reativado**, escala e datas **compartilhadas no WhatsApp**, regra de que **coordenador sempre monta repertório** e um visual mais limpo. A revisão está na seção 15.
+>
 > **O que mudou na v3:** **calendário pessoal** (mês e lista), escala montada em **3 passos**, **várias funções por pessoa** na mesma data, **prévia** da escala com **confirmação ou pedido de ajuste**, e **escala do mês inteiro**. O pedido de ajuste substitui o remanejamento e o atalho de repetir dias da semana substitui o "duplicar escala". A revisão completa está na seção 14.
 >
 > **O que mudou na v2:** vocabulário 100% neutro (sem termos religiosos), "Equipe" passa a se chamar **Departamento**, todo mundo entra como **Membro** e só ganha acesso quando alguém acima libera, a organização é **solicitada e aprovada pelo Circlle**, a entrada no departamento é por **código**, e a escala nasce da **disponibilidade** que os membros marcam.
@@ -55,9 +57,9 @@ A organização funciona como um **grupo com departamentos**: quem contrata, con
 
 - **Dono da plataforma (Circlle):** aprova solicitações de organização, define o plano contratado e pode suspender uma organização. Não vê escalas, avaliações nem dados internos das organizações (LGPD).
 - **Administrador:** gerencia o grupo, cria os departamentos e promove membros a coordenadores. Tem acesso de coordenador em todos os departamentos.
-- **Coordenador:** configura o seu departamento (funções, módulo de repertório), compartilha o código de entrada, aprova membros e suas funções, abre as datas do mês, monta as escalas, envia a prévia, atende os pedidos de ajuste, publica e publica avisos. Um departamento pode ter **mais de um coordenador**.
+- **Coordenador:** configura o seu departamento (nome, funções, módulo de repertório), sempre pode montar o repertório, compartilha o código de entrada, aprova membros e suas funções, abre as datas do mês, monta as escalas, envia a prévia, atende os pedidos de ajuste, publica e publica avisos. Um departamento pode ter **mais de um coordenador**.
 - **Membro:** marca sua disponibilidade nas datas abertas, vê suas escalas no calendário, confirma ou pede ajuste, edita as próprias funções e lê o mural.
-- **Permissão de repertório:** não é um perfil, é uma permissão que o coordenador dá a um membro para montar e enviar repertórios.
+- **Permissão de repertório:** não é um perfil, é uma permissão que o coordenador dá a um membro para montar e enviar repertórios. Coordenadores e administradores já têm essa permissão sempre.
 
 Os papéis são **por departamento**: a mesma pessoa pode ser coordenadora da Mídia e membro da Música.
 
@@ -133,8 +135,8 @@ Todos os usuários de teste usam e-mails `@circlle.test` (ver `supabase/seed-tes
 - **RF05** Solicitar organização informando nome, tipo de grupo, cidade, quantidade aproximada de pessoas, WhatsApp e e-mail.
 - **RF06** Tela "em análise" para o solicitante enquanto a organização não é aprovada.
 - **RF07** Painel do Circlle para listar, aprovar, recusar e suspender organizações.
-- **RF08** Administrador cria, renomeia e desativa departamentos.
-- **RF09** Personalizar os rótulos (organização, departamento, evento, função).
+- **RF08** Administrador cria, desativa e reativa departamentos; administrador e coordenador renomeiam.
+- **RF09** Personalizar os rótulos (organização, departamento, evento, função), na tela do administrador. Campo vazio volta ao padrão.
 
 ### 7.3 Departamentos e papéis
 
@@ -171,8 +173,8 @@ Todos os usuários de teste usam e-mails `@circlle.test` (ver `supabase/seed-tes
 ### 7.7 Comunicação
 
 - **RF30** Mural do departamento: coordenadores e quem tem permissão de repertório publicam; membros leem.
-- **RF31** Notificações push: pedido de entrada, entrada aprovada, datas abertas, prévia enviada, pedido de ajuste, escala publicada, repertório enviado e lembrete na véspera.
-- **RF32** Botão "compartilhar no WhatsApp" para código, evento e escala.
+- **RF31** Notificações push, ligadas por aparelho no Perfil (ou pelo convite no Início): pedido de entrada, entrada aprovada, datas abertas, prévia enviada, escala publicada, escala alterada, pedido de ajuste. Ficam para depois: repertório enviado e lembrete na véspera.
+- **RF32** Compartilhar no WhatsApp: código do departamento, escala de uma data, escala do mês e datas abertas para marcar.
 
 ### 7.8 Painéis
 
@@ -211,6 +213,10 @@ Todos os usuários de teste usam e-mails `@circlle.test` (ver `supabase/seed-tes
 - **RN14** O dono da plataforma não acessa escalas, avaliações e avisos das organizações.
 - **RN15** Se o coordenador mudar as funções de alguém que já respondeu, a pessoa volta a confirmar.
 - **RN16** A prévia é visível para todo o departamento; só os escalados respondem.
+- **RN17** Coordenadores e administradores sempre podem montar o repertório dos seus departamentos (com o módulo ativo); a permissão de repertório é só para membros.
+- **RN18** Só o administrador desativa ou reativa um departamento. Desativado, ele some do app dos membros e coordenadores, mas nada é apagado. Nenhum departamento muda de organização.
+- **RN19** As notificações valem por aparelho. Ao sair da conta, o aparelho deixa de receber; se outra conta entrar e ativar, os avisos passam a ser dela.
+- **RN20** As notificações saem do servidor, que confere se quem pediu o aviso tem direito (ex.: só o coordenador avisa sobre a escala do seu departamento).
 
 ---
 
@@ -253,7 +259,16 @@ O MVP está pronto quando, com os usuários de teste, for possível:
 
 ---
 
-## 12. Banco de dados (v3)
+## 12. Banco de dados (v4)
+
+**v4**
+
+- Trava `proteger_departamento`: coordenador renomeia, só o administrador desativa ou reativa (respeitando o limite do plano) e nenhum departamento troca de organização.
+- Função `registrar_push`: liga as notificações do aparelho à conta logada.
+- Função de servidor `notificar` (Supabase Edge Function): confere a permissão e envia os avisos.
+- Banco da v3: `supabase/migracao-v4.sql`, que não apaga dados.
+
+**v3**
 
 - `eventos.status`: **aberto → previa → publicado → realizado** (ou cancelado).
 - `escalas`: uma linha por pessoa e data, com `resposta` (pendente, confirmado, ajuste), `motivo` e `respondido_em`.
@@ -271,13 +286,15 @@ O MVP está pronto quando, com os usuários de teste, for possível:
 | Marca, logo, paleta e tokens | ✅ Pronto |
 | Protótipo navegável | ✅ Pronto (precisa trocar os termos religiosos) |
 | Projeto Vite + PWA, publicado no Netlify | ✅ Pronto |
-| Banco v3 com RLS | ✅ Pronto |
+| Banco v4 com RLS | ✅ Pronto |
 | Contratação, departamentos, código e aprovação | ✅ Pronto |
 | Datas do mês, disponibilidade e escala em 3 passos | ✅ Pronto |
 | Prévia, respostas e publicação do mês | ✅ Pronto |
 | Calendário pessoal | ✅ Pronto |
 | Painel do Circlle | ✅ Pronto |
-| Notificações push | ⏳ Próximo passo |
+| Notificações push | ✅ Pronto (falta o lembrete na véspera) |
+| Rótulos, departamentos desativados e WhatsApp | ✅ Pronto |
+| Sugestão automática, ensaios, repertório e mural | ⏳ Etapa 2 |
 
 ---
 
@@ -296,3 +313,18 @@ O MVP está pronto quando, com os usuários de teste, for possível:
 | ➖ Sai | Duplicar escala | Substituído pelo atalho de repetir dias da semana |
 | ➖ Sai | Data alternativa e sugestão de troca no remanejamento | O motivo em texto cobre os dois casos |
 | ⏭️ Adia | Repertório no critério de aceite | Fica para a Etapa 2, junto com o mural |
+
+---
+
+## 15. Revisão de requisitos (v4)
+
+| | Requisito | O que aconteceu |
+|---|---|---|
+| ✅ Feito | Notificações push (RF31) | Sete avisos prontos; lembrete na véspera e repertório enviado ficam para depois |
+| ✅ Feito | Rótulos (RF09) | Tela "Nomes no app" do administrador; o nome do evento vira sugestão ao abrir datas |
+| ✅ Feito | Renomear e desativar departamento (RF08) | Coordenador renomeia; administrador desativa e reativa |
+| ✅ Feito | WhatsApp (RF32) | Escala de uma data, escala do mês e datas abertas |
+| ➕ Entra | RN17 a RN20 | Repertório dos coordenadores, departamento desativado e regras das notificações |
+| 🎨 Muda | Visual | Mais minimalista: menos brilho e gradiente, cartões mais leves; a marca continua |
+| ⏭️ Fica | Foto no perfil (RF02) | Segue opcional, sem data |
+

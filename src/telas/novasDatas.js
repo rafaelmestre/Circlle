@@ -1,4 +1,5 @@
 import { supabase } from '../lib/supabase.js';
+import { notificar } from '../lib/notificacoes.js';
 import { escapar, casca, botaoVoltar, mostrarErro, limparMsg, traduzirErro, comBotao, aviso } from '../lib/ui.js';
 
 const fmt = new Intl.DateTimeFormat('pt-BR', { weekday: 'short', day: '2-digit', month: 'short' });
@@ -21,7 +22,7 @@ function proximosMeses() {
 // Abrir várias datas de uma vez para os membros marcarem disponibilidade (RF17)
 export async function telaNovasDatas(ctx, depId) {
   const { data: dep } = await supabase.from('departamentos')
-    .select('id, nome, organizacao_id').eq('id', depId).maybeSingle();
+    .select('id, nome, organizacao_id, organizacoes(termo_evento)').eq('id', depId).maybeSingle();
   if (!dep || !ctx.coordena(dep.id, dep.organizacao_id)) {
     location.hash = '#/';
     return;
@@ -41,7 +42,8 @@ export async function telaNovasDatas(ctx, depId) {
       <form class="form card" novalidate>
         <div class="field">
           <label for="titulo">Nome</label>
-          <input id="titulo" name="titulo" required maxlength="80" placeholder="Ex.: Apresentação na praça" />
+          <input id="titulo" name="titulo" required maxlength="80" placeholder="Ex.: Apresentação na praça"
+            value="${escapar(dep.organizacoes?.termo_evento && dep.organizacoes.termo_evento !== 'Evento' ? dep.organizacoes.termo_evento : '')}" />
         </div>
         <div class="field">
           <label for="local">Local (opcional)</label>
@@ -143,6 +145,7 @@ export async function telaNovasDatas(ctx, depId) {
     const { error } = await comBotao(form.querySelector('button[type="submit"]'), () =>
       supabase.from('eventos').insert(linhas));
     if (error) return mostrarErro(form, traduzirErro(error));
+    notificar('datas_abertas', { departamento_id: dep.id, quantidade: linhas.length });
     aviso(`${linhas.length} ${linhas.length === 1 ? 'data aberta' : 'datas abertas'}!`);
     location.hash = `#/dep/${dep.id}`;
   });

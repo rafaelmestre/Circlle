@@ -1522,3 +1522,98 @@ a.evento-dia > svg:last-child { margin-left: auto; flex-shrink: 0; color: var(--
 
 /* Elementos escondidos nunca aparecem, mesmo com display definido */
 [hidden] { display: none !important; }
+
+
+/* ==========================================================
+   v4 — Refinamento minimalista
+   Mesma marca (cores, Poppins, formas arredondadas), com menos ruído:
+   sem brilho, gradiente só no logo, no destaque e no código,
+   seleção em tom suave, títulos mais leves e superfícies mais calmas.
+   ========================================================== */
+
+/* Títulos: semibold em vez de bold */
+h1, h2, h3,
+.titulo h1, .auth__title, .secao > h2, .secao__cab h2, .cartao__titulo,
+.destaque__titulo, .codigo__valor, .kpi__valor, .grafico__titulo {
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: -0.01em;
+}
+.titulo h1 { font-size: 1.5rem; }
+.secao > h2, .secao__cab h2 { font-size: var(--font-size-sm); color: var(--text-muted); text-transform: none; letter-spacing: 0.01em; }
+strong { font-weight: var(--font-weight-medium); }
+
+/* Entrada: fundo quase liso */
+.auth {
+  background:
+    radial-gradient(circle at 50% 0%, rgb(109 92 246 / 0.12), transparent 55%),
+    var(--bg);
+}
+.auth__logo { filter: none; }
+
+/* Botões: cor sólida, sem brilho */
+.btn { transition: background var(--transition), transform var(--transition); }
+.btn-primary { background: var(--brand-solid); box-shadow: none; }
+.btn-primary:hover { background: var(--brand-solid-hover); }
+.btn-ghost { background: transparent; border: 1px solid var(--border); }
+.btn-ghost:hover { background: var(--surface); }
+
+/* Cartões e listas: superfície sem sombra, borda discreta */
+.card { box-shadow: none; border-radius: 20px; }
+.lista__item { border-color: transparent; }
+.lista__item--link:hover { border-color: var(--border); }
+.lista__item--eu { border-color: rgb(34 211 238 / 0.35); }
+.avatar, .icon-circle { border-color: transparent; }
+.data__dia { background: transparent; border: 1px solid var(--border); }
+
+/* Seleção: tom suave da marca em vez de gradiente */
+.chip { background: transparent; }
+.chip[aria-pressed='true'] {
+  border-color: transparent;
+  background: var(--accent-tint);
+  color: var(--accent-text);
+}
+.tabs button[aria-selected='true'],
+.segmentos button[aria-pressed='true'] {
+  background: var(--surface-raised);
+  color: var(--text);
+}
+.toggle input:checked + .toggle__trilho { background: var(--brand-solid); }
+.passos-escala li.atual .passos-escala__num { background: var(--brand-solid); }
+.pessoa-opcao[aria-pressed='true'] { border-color: rgb(109 92 246 / 0.6); background: rgb(109 92 246 / 0.08); }
+.pessoa-opcao[aria-pressed='true'] .pessoa-opcao__marca { background: var(--brand-solid); }
+
+/* Navegação: só a cor marca a aba atual */
+.nav { background: color-mix(in srgb, var(--bg) 94%, transparent); }
+.nav__item[aria-current='page'] { background: transparent; color: var(--text); }
+.nav__item[aria-current='page'] svg { color: var(--accent-text); }
+
+/* Destaque e código mantêm o gradiente (é a assinatura da marca), sem brilho */
+.destaque { box-shadow: none; }
+.toast { box-shadow: var(--shadow-float); }
+
+/* ---------- Componentes novos da v4 ---------- */
+.convite-push {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: var(--space-3) var(--space-4);
+  padding: var(--space-4);
+}
+.convite-push .icon-circle { width: 40px; height: 40px; color: var(--accent-text); background: var(--accent-tint); }
+.convite-push__texto { display: grid; gap: 2px; }
+.convite-push__texto small { color: var(--text-muted); font-size: var(--font-size-sm); line-height: 1.4; }
+.convite-push .acoes { grid-column: 1 / -1; justify-content: flex-end; }
+
+.compartilhar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1) var(--space-3);
+  font-size: var(--font-size-sm);
+  color: var(--text-muted);
+}
+.compartilhar__rotulo { display: inline-flex; align-items: center; gap: var(--space-1); }
+
+.desativado { display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); }
+.avatar--apagado { opacity: 0.5; }
+.field label .dica { margin-left: var(--space-1); font-weight: var(--font-weight-regular); }

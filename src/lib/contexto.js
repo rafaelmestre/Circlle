@@ -15,8 +15,8 @@ export async function carregarContexto(usuario) {
       .order('created_at', { ascending: false }),
     supabase.from('membros_departamento')
       .select(`departamento_id, papel, perm_repertorio, status,
-               departamentos(id, nome, codigo, modulo_repertorio, organizacao_id,
-                 organizacoes(id, nome, status, termo_departamento, termo_evento, termo_funcao))`)
+               departamentos(id, nome, codigo, modulo_repertorio, organizacao_id, ativo,
+                 organizacoes(id, nome, status, termo_organizacao, termo_departamento, termo_evento, termo_funcao))`)
       .eq('usuario_id', usuario.id)
       .order('created_at')
   ]);
@@ -28,9 +28,9 @@ export async function carregarContexto(usuario) {
     .filter((m) => m.papel === 'admin' && m.organizacoes?.status === 'ativa')
     .map((m) => m.organizacoes);
 
-  // Vínculos de organizações suspensas não aparecem
+  // Vínculos de organizações suspensas e de departamentos desativados não aparecem
   const meusVinculos = (vinculos.data ?? [])
-    .filter((v) => v.departamentos?.organizacoes?.status === 'ativa');
+    .filter((v) => v.departamentos?.ativo && v.departamentos?.organizacoes?.status === 'ativa');
 
   return {
     usuario,

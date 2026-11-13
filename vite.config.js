@@ -6,6 +6,8 @@ export default defineConfig({
     VitePWA({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.svg', 'icons/apple-touch-icon.png'],
+      // Notificações: o service worker gerado também carrega o push-sw.js
+      workbox: { importScripts: ['push-sw.js'] },
       manifest: {
         name: 'Circlle',
         short_name: 'Circlle',

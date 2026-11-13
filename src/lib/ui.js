@@ -119,6 +119,8 @@ export const icone = {
   lista: (t = 18) => svg('<path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/>', t),
   anterior: (t = 20) => svg('<path d="M15 18l-6-6 6-6"/>', t),
   proximo: (t = 20) => svg('<path d="M9 6l6 6-6 6"/>', t),
+  sino: (t = 20) => svg('<path d="M6 8a6 6 0 0112 0c0 7 3 9 3 9H3s3-2 3-9M10.3 21a1.9 1.9 0 003.4 0"/>', t),
+  editar: (t = 16) => svg('<path d="M12 20h9M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4z"/>', t),
   alerta: (t = 18) => svg('<path d="M12 9v4M12 17h.01"/><path d="M10.3 3.9L1.8 18a2 2 0 001.7 3h17a2 2 0 001.7-3L13.7 3.9a2 2 0 00-3.4 0z"/>', t)
 };
 
@@ -149,6 +151,62 @@ export const STATUS_EVENTO = {
   realizado: ['Realizado', 'badge--confirmed'],
   cancelado: ['Cancelado', 'badge--declined']
 };
+
+// ---------- Rótulos da organização (RF09) ----------
+// Plural simples em português: Função → Funções, Equipe → Equipes, Setor → Setores
+export function plural(termo) {
+  const [primeira, ...resto] = String(termo).trim().split(/\s+/);
+  const p = primeira.toLowerCase();
+  let r;
+  if (/ão$/.test(p)) r = `${primeira.slice(0, -2)}ões`;
+  else if (/[aeiouáéíóúâêô]$/.test(p)) r = `${primeira}s`;
+  else if (/m$/.test(p)) r = `${primeira.slice(0, -1)}ns`;
+  else if (/[rz]$/.test(p)) r = `${primeira}es`;
+  else if (/el$/.test(p)) r = `${primeira.slice(0, -2)}éis`;
+  else if (/[aou]l$/.test(p)) r = `${primeira.slice(0, -1)}is`;
+  else r = primeira;
+  return [r, ...resto].join(' ');
+}
+
+const minuscula = (t) => t.charAt(0).toLowerCase() + t.slice(1);
+
+// Termos de uma organização, com plural e minúsculas prontos para o texto
+export function termos(org) {
+  const base = {
+    org: org?.termo_organizacao || 'Organização',
+    dep: org?.termo_departamento || 'Departamento',
+    evento: org?.termo_evento || 'Evento',
+    funcao: org?.termo_funcao || 'Função'
+  };
+  const t = { ...base, deps: plural(base.dep), eventos: plural(base.evento), funcoes: plural(base.funcao) };
+  for (const k of Object.keys(t)) t[`${k}_`] = minuscula(t[k]);
+  return t;
+}
+
+// ---------- WhatsApp (RF32) ----------
+export const linkWhats = (texto) => `https://wa.me/?text=${encodeURIComponent(texto)}`;
+
+// Escala em texto: "*Vocal:* Rita, Marcos"
+export function textoEscala(ev, depNome, escalas) {
+  const grupos = new Map();
+  for (const s of escalas) {
+    const nome = (s.perfis?.nome ?? '').trim().split(/\s+/)[0];
+    const funcoes = (s.escala_funcoes ?? []).map((f) => f.funcoes?.nome).filter(Boolean);
+    for (const f of funcoes.length ? funcoes : ['Função a definir']) {
+      if (!grupos.has(f)) grupos.set(f, []);
+      grupos.get(f).push(nome);
+    }
+  }
+  const linhas = [...grupos.entries()].sort(([a], [b]) => a.localeCompare(b))
+    .map(([f, nomes]) => `*${f}:* ${nomes.sort().join(', ')}`);
+  return [
+    depNome ? `*${ev.titulo}* · ${depNome}` : `*${ev.titulo}*`,
+    `${formatarData(ev.inicio)}${ev.local ? ` · ${ev.local}` : ''}`,
+    ev.status === 'previa' ? '_Prévia: ainda pode mudar_' : null,
+    '',
+    ...(linhas.length ? linhas : ['Ninguém escalado ainda.'])
+  ].filter((l) => l !== null).join('\n');
+}
 
 // ---------- Estrutura com navegação inferior ----------
 export function casca(ctx, ativo, conteudo) {

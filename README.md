@@ -47,6 +47,8 @@ Ferramentas de gestão costumam ser caras e feitas para grandes organizações. 
 - **Montar a escala em 3 passos**: quem vai, o que cada um faz e revisar
 - **Várias funções por pessoa** na mesma data, como tocar e cantar
 - **Prévia**: a equipe confere a escala e confirma ou pede ajuste antes de publicar
+- **Notificações no celular**: datas abertas, prévia, escala publicada ou alterada, pedidos de entrada e de ajuste
+- **WhatsApp**: mande a escala de uma data, a escala do mês ou as datas para marcar
 - **Sugestão automática** em rodízio e **ensaios** (em breve)
 
 **Repertório** (módulo opcional por departamento)
@@ -56,7 +58,8 @@ Ferramentas de gestão costumam ser caras e feitas para grandes organizações. 
 **Departamento**
 - Entrada por **código**, com aprovação do coordenador
 - **Funções de cada membro** registradas e editáveis no perfil
-- **Mural de avisos** e **notificações push**
+- **Nomes do seu grupo**: troque “Departamento”, “Evento” e “Função” pelas palavras que vocês usam
+- **Mural de avisos** (em breve)
 - **Acompanhamento de desempenho**, visível só aos coordenadores
 
 ---
@@ -81,7 +84,7 @@ Os termos são neutros, e **cada organização pode renomeá-los** para a sua pr
 | **Administrador** | Equipe do Circlle | Gerencia a organização e promove coordenadores |
 | **Coordenador** | Administrador | Configura o departamento, aprova membros, abre eventos e publica escalas |
 | **Membro** | Coordenador | Marca disponibilidade, vê suas escalas no calendário, confirma ou pede ajuste |
-| **Permissão de repertório** | Coordenador | Membro que monta e envia o repertório |
+| **Permissão de repertório** | Coordenador | Membro que monta e envia o repertório (coordenadores já podem sempre) |
 
 ---
 
@@ -102,8 +105,8 @@ O símbolo é um **"C" envolvido por um círculo**: a equipe no centro e as pess
 |---|---|
 | Confirmado | `#22C55E` |
 | Pendente | `#FB923C` |
-| Remanejamento | `#8B3DFF` |
-| Recusa ou falta | `#F43F5E` |
+| Prévia | `#8B3DFF` |
+| Pediu ajuste | `#F43F5E` |
 
 ---
 
@@ -125,7 +128,9 @@ cp .env.example .env   # preencha com a URL e a chave publishable do Supabase
 npm run dev
 ```
 
-**Banco de dados:** crie um projeto no [Supabase](https://supabase.com) e rode [`supabase/schema.sql`](supabase/schema.sql) no **SQL Editor**. Para dados de teste, rode também [`supabase/seed-teste.sql`](supabase/seed-teste.sql). Quem já usa a versão anterior do banco roda só [`supabase/migracao-v3.sql`](supabase/migracao-v3.sql), que não apaga dados.
+**Banco de dados:** crie um projeto no [Supabase](https://supabase.com) e rode [`supabase/schema.sql`](supabase/schema.sql) no **SQL Editor**. Para dados de teste, rode também [`supabase/seed-teste.sql`](supabase/seed-teste.sql). Quem já tem dados roda só as migrações que faltam, que não apagam nada: [`migracao-v3.sql`](supabase/migracao-v3.sql) (v2 → v3) e [`migracao-v4.sql`](supabase/migracao-v4.sql) (v3 → v4).
+
+**Notificações (opcional):** gere as chaves com `npx web-push generate-vapid-keys`, coloque a pública em `VITE_VAPID_PUBLIC_KEY` no `.env`, cadastre `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY` e `VAPID_SUBJECT` nos *secrets* das Edge Functions do Supabase e publique a função [`supabase/functions/notificar`](supabase/functions/notificar/index.ts). Sem isso, o app funciona normalmente, só sem os avisos.
 
 ## 📁 Estrutura
 
@@ -135,10 +140,11 @@ Circlle/
 ├── vite.config.js        # Vite + PWA (manifest e service worker)
 ├── src/
 │   ├── main.js           # telas e roteamento pela sessão
-│   ├── lib/supabase.js   # cliente do Supabase
+│   ├── lib/              # Supabase, contexto, interface e notificações
+│   ├── telas/            # uma tela por arquivo
 │   └── styles/           # tokens.css (design) e main.css
-├── public/               # favicon e ícones do PWA
-├── supabase/             # schema, migrações e dados de teste
+├── public/               # favicon, ícones e push-sw.js (notificações)
+├── supabase/             # schema, migrações, dados de teste e functions/notificar
 ├── assets/logo/          # versões do logo
 └── docs/                 # documentação do projeto
 ```
@@ -152,7 +158,7 @@ Circlle/
 - [x] Protótipo navegável
 - [x] Projeto Vite + PWA, publicado no Netlify
 - [x] Banco com Row Level Security
-- [x] Documentação v3
+- [x] Documentação v4
 
 **Etapa 1: MVP**
 - [x] Solicitação e aprovação de organização
@@ -162,7 +168,9 @@ Circlle/
 - [x] Prévia, confirmação e pedido de ajuste
 - [x] Escala do mês e calendário pessoal
 - [x] Painel do Circlle
-- [ ] Notificações push
+- [x] Notificações push
+- [x] Nomes do grupo, departamentos desativados e WhatsApp
+- [ ] Lembrete na véspera
 
 **Etapa 2**
 - [ ] Sugestão automática de escala

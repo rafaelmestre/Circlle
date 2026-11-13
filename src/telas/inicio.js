@@ -1,6 +1,7 @@
 import { supabase } from '../lib/supabase.js';
 import { htmlPainelPlataforma } from './painelPlataforma.js';
-import { escapar, primeiroNome, iniciais, formatarData, diaMes, casca, icone, vazio, aviso, traduzirErro, comBotao, nomesFuncoes } from '../lib/ui.js';
+import { estadoNotificacoes, ativarNotificacoes } from '../lib/notificacoes.js';
+import { escapar, primeiroNome, iniciais, formatarData, diaMes, casca, icone, vazio, aviso, traduzirErro, comBotao, nomesFuncoes, termos } from '../lib/ui.js';
 
 // Painel do membro (RF33): próxima escala, datas abertas e departamentos
 export async function telaInicio(ctx) {
@@ -93,6 +94,38 @@ export async function telaInicio(ctx) {
 
   const painel = ctx.plataforma ? await htmlPainelPlataforma() : '';
 
+  // Se todos os vínculos são de um grupo só, usa as palavras dele (RF09)
+  const orgs = new Map([...ctx.vinculos.map((v) => v.departamentos.organizacoes), ...ctx.orgsAdmin].map((o) => [o.id, o]));
+  const t = termos(orgs.size === 1 ? [...orgs.values()][0] : null);
+
+  // Convite para ligar as notificações (some quando a pessoa ativa ou dispensa)
+  const CHAVE_CONVITE = 'circlle:convite-notificacoes';
+  let dispensado = false;
+  try { dispensado = localStorage.getItem(CHAVE_CONVITE) === '1'; } catch { /* sem armazenamento */ }
+  const push = ctx.vinculos.length && !dispensado ? await estadoNotificacoes() : 'indisponivel';
+  const blocoPush = push === 'inativo' ? `
+    <section class="card convite-push">
+      <span class="icon-circle">${icone.sino()}</span>
+      <div class="convite-push__texto">
+        <strong>Receba os avisos no celular</strong>
+        <small>Prévia, escala publicada e datas abertas chegam na hora.</small>
+      </div>
+      <div class="acoes acoes--linha">
+        <button class="btn btn-ghost btn-sm" data-dispensar>Agora não</button>
+        <button class="btn btn-primary btn-sm" id="ativarPush">Ativar</button>
+      </div>
+    </section>` : push === 'instalar' ? `
+    <section class="card convite-push">
+      <span class="icon-circle">${icone.sino()}</span>
+      <div class="convite-push__texto">
+        <strong>Quer os avisos no iPhone?</strong>
+        <small>Toque em <b>Compartilhar</b> e depois em <b>Adicionar à Tela de Início</b>. Abra o Circlle pelo ícone e ative as notificações no Perfil.</small>
+      </div>
+      <div class="acoes acoes--linha">
+        <button class="btn btn-ghost btn-sm" data-dispensar>Entendi</button>
+      </div>
+    </section>` : '';
+
   casca(ctx, 'inicio', `
     <main class="tela tela--com-nav">
       <header class="topo">
@@ -109,6 +142,8 @@ export async function telaInicio(ctx) {
       ${painel}
 
       ${blocoDestaque}
+
+      ${blocoPush}
 
       ${pendentes.length ? `
         <p class="card aviso-card">Seu pedido para entrar em <strong>${pendentes.map((p) => escapar(p.departamentos.nome)).join(', ')}</strong>
@@ -142,7 +177,7 @@ export async function telaInicio(ctx) {
         </section>` : ''}
 
       <section class="secao">
-        <h2>Meus departamentos</h2>
+        <h2>Meus ${escapar(t.deps_)}</h2>
         <div class="lista">
           ${meusDeps.join('') || ''}
           ${depsAdmin.map((d) => `
@@ -151,7 +186,7 @@ export async function telaInicio(ctx) {
               <span class="lista__texto"><strong>${escapar(d.nome)}</strong><small>${escapar(d.organizacoes.nome)}</small></span>
               <span class="badge badge--reassign">Admin</span>${icone.seta()}
             </a>`).join('')}
-          ${!meusDeps.length && !depsAdmin.length ? vazio('Nenhum departamento ainda.') : ''}
+          ${!meusDeps.length && !depsAdmin.length ? vazio('Nada por aqui ainda.') : ''}
         </div>
         <a class="btn btn-ghost" href="#/entrar">${icone.mais()} Entrar com código</a>
       </section>
@@ -163,6 +198,22 @@ export async function telaInicio(ctx) {
     if (error) return aviso(traduzirErro(error));
     aviso('Presença confirmada!');
     telaInicio(ctx);
+  });
+
+  const fecharConvite = () => {
+    try { localStorage.setItem(CHAVE_CONVITE, '1'); } catch { /* sem armazenamento */ }
+    document.querySelector('.convite-push')?.remove();
+  };
+  document.querySelector('[data-dispensar]')?.addEventListener('click', fecharConvite);
+  document.querySelector('#ativarPush')?.addEventListener('click', async (e) => {
+    const { error } = await comBotao(e.currentTarget, ativarNotificacoes);
+    if (error) {
+      return aviso(error.message === 'Notificações bloqueadas'
+        ? 'As notificações estão bloqueadas no navegador. Libere nas configurações do site.'
+        : 'Não foi possível ativar agora. Tente pelo Perfil.');
+    }
+    fecharConvite();
+    aviso('Pronto! Você vai receber os avisos neste aparelho.');
   });
 
   // Marcar / desmarcar disponibilidade (RF19, RF20)
