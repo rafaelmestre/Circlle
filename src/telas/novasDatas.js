@@ -4,6 +4,20 @@ import { escapar, casca, botaoVoltar, mostrarErro, limparMsg, traduzirErro, comB
 const fmt = new Intl.DateTimeFormat('pt-BR', { weekday: 'short', day: '2-digit', month: 'short' });
 const rotuloData = (iso) => fmt.format(new Date(`${iso}T12:00`)).replace('.', '').replace(' de ', ' ');
 
+const SEMANA = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
+const pad = (n) => String(n).padStart(2, '0');
+const isoLocal = (d) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+
+// Este mês e os dois seguintes
+function proximosMeses() {
+  const hoje = new Date();
+  return [0, 1, 2].map((i) => {
+    const d = new Date(hoje.getFullYear(), hoje.getMonth() + i, 1);
+    const nome = d.toLocaleDateString('pt-BR', d.getFullYear() === hoje.getFullYear() ? { month: 'long' } : { month: 'long', year: 'numeric' });
+    return { valor: `${d.getFullYear()}-${d.getMonth()}`, nome: nome.charAt(0).toUpperCase() + nome.slice(1) };
+  });
+}
+
 // Abrir várias datas de uma vez para os membros marcarem disponibilidade (RF17)
 export async function telaNovasDatas(ctx, depId) {
   const { data: dep } = await supabase.from('departamentos')
@@ -14,7 +28,7 @@ export async function telaNovasDatas(ctx, depId) {
   }
 
   const datas = new Set();
-  const hoje = new Date().toISOString().slice(0, 10);
+  const hoje = isoLocal(new Date());
 
   casca(ctx, 'inicio', `
     <main class="tela tela--com-nav">
@@ -37,6 +51,20 @@ export async function telaNovasDatas(ctx, depId) {
           <label for="hora">Horário</label>
           <input id="hora" name="hora" type="time" required value="19:00" />
         </div>
+        <fieldset class="field repetir">
+          <legend>Atalho: repetir toda semana no mês</legend>
+          <div class="chips" role="group" aria-label="Dias da semana">
+            ${SEMANA.map((d, i) => `<button type="button" class="chip" data-semana="${i}" aria-pressed="false">${d}</button>`).join('')}
+          </div>
+          <div class="linha linha--sem-margem">
+            <select id="mes" aria-label="Mês">
+              ${proximosMeses().map((m) => `<option value="${m.valor}">${escapar(m.nome)}</option>`).join('')}
+            </select>
+            <button class="btn btn-ghost btn-sm" type="button" id="repetir">Adicionar</button>
+          </div>
+          <small class="dica">Ex.: marque Dom e escolha dezembro para abrir todos os domingos do mês.</small>
+        </fieldset>
+
         <fieldset class="field">
           <legend>Datas</legend>
           <div class="linha linha--sem-margem">
@@ -70,6 +98,29 @@ export async function telaNovasDatas(ctx, depId) {
     desenharDatas();
   };
   document.querySelector('#addData').addEventListener('click', adicionar);
+
+  // Repetir: todos os dias da semana escolhidos no mês escolhido, a partir de hoje
+  const semanas = new Set();
+  document.querySelectorAll('[data-semana]').forEach((b) =>
+    b.addEventListener('click', () => {
+      const d = Number(b.dataset.semana);
+      semanas.has(d) ? semanas.delete(d) : semanas.add(d);
+      b.setAttribute('aria-pressed', String(semanas.has(d)));
+    }));
+  document.querySelector('#repetir').addEventListener('click', () => {
+    if (!semanas.size) return aviso('Escolha pelo menos um dia da semana.');
+    const [ano, mes] = document.querySelector('#mes').value.split('-').map(Number);
+    let novas = 0;
+    for (let d = new Date(ano, mes, 1); d.getMonth() === mes; d.setDate(d.getDate() + 1)) {
+      const iso = isoLocal(d);
+      if (semanas.has(d.getDay()) && iso >= hoje && !datas.has(iso)) {
+        datas.add(iso);
+        novas++;
+      }
+    }
+    desenharDatas();
+    aviso(novas ? `${novas} ${novas === 1 ? 'data adicionada' : 'datas adicionadas'}.` : 'Essas datas já estão na lista.');
+  });
   campoData.addEventListener('change', adicionar);
 
   form.addEventListener('submit', async (e) => {

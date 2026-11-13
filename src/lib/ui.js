@@ -39,6 +39,8 @@ const ERROS = {
   'A pessoa não é membro ativo': 'Essa pessoa ainda não foi aprovada no departamento.',
   'Apenas o administrador define coordenadores': 'Só o administrador pode definir coordenadores.',
   'Limite de departamentos do plano atingido': 'O limite de departamentos do plano foi atingido.',
+  'Conte o motivo do ajuste': 'Conte o motivo do ajuste.',
+  'Esta escala não está aberta para respostas': 'Esta escala não está mais aberta para respostas.',
   'duplicate key': 'Isso já existe.'
 };
 
@@ -112,13 +114,47 @@ export const icone = {
   girar: (t = 18) => svg('<path d="M20 11a8 8 0 10-2.3 5.7M20 4v7h-7"/>', t),
   relogio: (t = 16) => svg('<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>', t),
   local: (t = 16) => svg('<path d="M12 21s-7-6.2-7-11a7 7 0 0114 0c0 4.8-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/>', t),
-  seta: (t = 18) => svg('<path d="M9 6l6 6-6 6"/>', t)
+  seta: (t = 18) => svg('<path d="M9 6l6 6-6 6"/>', t),
+  calendario: (t) => svg('<rect x="3" y="5" width="18" height="16" rx="3"/><path d="M3 10h18M8 3v4M16 3v4"/>', t),
+  lista: (t = 18) => svg('<path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/>', t),
+  anterior: (t = 20) => svg('<path d="M15 18l-6-6 6-6"/>', t),
+  proximo: (t = 20) => svg('<path d="M9 6l6 6-6 6"/>', t),
+  alerta: (t = 18) => svg('<path d="M12 9v4M12 17h.01"/><path d="M10.3 3.9L1.8 18a2 2 0 001.7 3h17a2 2 0 001.7-3L13.7 3.9a2 2 0 00-3.4 0z"/>', t)
+};
+
+// ---------- Escala ----------
+// Nomes das funções de uma linha de escala: "Violão e Vocal"
+export function nomesFuncoes(escala) {
+  const nomes = (escala?.escala_funcoes ?? []).map((f) => f.funcoes?.nome).filter(Boolean).sort();
+  if (!nomes.length) return 'Função a definir';
+  return nomes.length === 1 ? nomes[0] : `${nomes.slice(0, -1).join(', ')} e ${nomes.at(-1)}`;
+}
+
+// Etiqueta da resposta do escalado
+export function badgeResposta(resposta) {
+  const mapa = {
+    confirmado: ['Confirmado', 'badge--confirmed'],
+    ajuste: ['Pediu ajuste', 'badge--declined'],
+    pendente: ['Aguardando resposta', 'badge--pending']
+  };
+  const [rotulo, classe] = mapa[resposta] ?? mapa.pendente;
+  return `<span class="badge ${classe}">${rotulo}</span>`;
+}
+
+export const STATUS_EVENTO = {
+  rascunho: ['Rascunho', 'badge--reassign'],
+  aberto: ['Aberto', 'badge--pending'],
+  previa: ['Prévia', 'badge--reassign'],
+  publicado: ['Publicado', 'badge--confirmed'],
+  realizado: ['Realizado', 'badge--confirmed'],
+  cancelado: ['Cancelado', 'badge--declined']
 };
 
 // ---------- Estrutura com navegação inferior ----------
 export function casca(ctx, ativo, conteudo) {
   const itens = [
-    { id: 'inicio', rota: '#/', rotulo: 'Início', icone: icone.inicio() }
+    { id: 'inicio', rota: '#/', rotulo: 'Início', icone: icone.inicio() },
+    { id: 'calendario', rota: '#/calendario', rotulo: 'Calendário', icone: icone.calendario() }
   ];
   if (ctx.orgsAdmin.length) itens.push({ id: 'org', rota: `#/org/${ctx.orgsAdmin[0].id}`, rotulo: ctx.orgsAdmin[0].termo_organizacao, icone: icone.org() });
   if (ctx.plataforma) itens.push({ id: 'plataforma', rota: '#/plataforma', rotulo: 'Circlle', icone: icone.circlle() });

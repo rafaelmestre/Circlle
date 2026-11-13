@@ -1,7 +1,9 @@
 # Circlle — Documentação do Projeto
 
-*Um produto Codemancer Studio · versão 2 (nov/2026)*
+*Um produto Codemancer Studio · versão 3 (nov/2026)*
 
+> **O que mudou na v3:** **calendário pessoal** (mês e lista), escala montada em **3 passos**, **várias funções por pessoa** na mesma data, **prévia** da escala com **confirmação ou pedido de ajuste**, e **escala do mês inteiro**. O pedido de ajuste substitui o remanejamento e o atalho de repetir dias da semana substitui o "duplicar escala". A revisão completa está na seção 14.
+>
 > **O que mudou na v2:** vocabulário 100% neutro (sem termos religiosos), "Equipe" passa a se chamar **Departamento**, todo mundo entra como **Membro** e só ganha acesso quando alguém acima libera, a organização é **solicitada e aprovada pelo Circlle**, a entrada no departamento é por **código**, e a escala nasce da **disponibilidade** que os membros marcam.
 
 ---
@@ -30,7 +32,9 @@ A organização funciona como um **grupo com departamentos**: quem contrata, con
 | **Ensaio** | Preparação ligada ou não a um evento | Ensaio geral |
 | **Função** | O que a pessoa faz no departamento | Violão, foto, reparo elétrico |
 | **Disponibilidade** | O membro marca as datas em que pode | "Posso nos dias 7, 14 e 28" |
-| **Escala** | Quem foi escolhido para o evento e em qual função | Publicada pelo coordenador |
+| **Escala** | Quem foi escolhido para o evento e em quais funções | Rita no Vocal, Marcos no Violão e no Vocal |
+| **Prévia** | A escala enviada para a equipe conferir antes de publicar | "Prévia de novembro" |
+| **Resposta** | O que o escalado diz sobre a escala | Confirmo, Pedir ajuste, Não vou poder |
 | **Código do departamento** | Identificador curto para entrar no departamento | `HARM-4K7` |
 
 ---
@@ -51,8 +55,8 @@ A organização funciona como um **grupo com departamentos**: quem contrata, con
 
 - **Dono da plataforma (Circlle):** aprova solicitações de organização, define o plano contratado e pode suspender uma organização. Não vê escalas, avaliações nem dados internos das organizações (LGPD).
 - **Administrador:** gerencia o grupo, cria os departamentos e promove membros a coordenadores. Tem acesso de coordenador em todos os departamentos.
-- **Coordenador:** configura o seu departamento (funções, módulo de repertório), compartilha o código de entrada, aprova membros e suas funções, abre eventos, monta e publica escalas, publica avisos. Um departamento pode ter **mais de um coordenador**.
-- **Membro:** marca sua disponibilidade nos eventos abertos, consulta suas escalas, pede remanejamento, edita as próprias funções e lê o mural.
+- **Coordenador:** configura o seu departamento (funções, módulo de repertório), compartilha o código de entrada, aprova membros e suas funções, abre as datas do mês, monta as escalas, envia a prévia, atende os pedidos de ajuste, publica e publica avisos. Um departamento pode ter **mais de um coordenador**.
+- **Membro:** marca sua disponibilidade nas datas abertas, vê suas escalas no calendário, confirma ou pede ajuste, edita as próprias funções e lê o mural.
 - **Permissão de repertório:** não é um perfil, é uma permissão que o coordenador dá a um membro para montar e enviar repertórios.
 
 Os papéis são **por departamento**: a mesma pessoa pode ser coordenadora da Mídia e membro da Música.
@@ -99,17 +103,19 @@ Todos os usuários de teste usam e-mails `@circlle.test` (ver `supabase/seed-tes
 1. **Código:** o coordenador copia o código do departamento (ex.: `HARM-4K7`) e envia pelo WhatsApp.
 2. **Vínculo:** o membro faz login (ainda sem acesso a nada), busca o código e pede para entrar no departamento, marcando **o que faz** entre as funções do departamento (violão, foto, reparo elétrico…).
 3. **Aprovação:** o coordenador vê o pedido, confere ou ajusta as funções e aprova. As funções ficam registradas para as próximas escalas.
-4. **Eventos abertos:** o coordenador cria os eventos do período (data, horário e local) e os abre para disponibilidade. Não há limite de pessoas: quanto mais disponíveis, mais liberdade para escolher.
+4. **Datas do mês:** o coordenador abre as datas do mês de uma vez, por exemplo todos os domingos de dezembro, com horário e local. Não há limite de pessoas: quanto mais disponíveis, mais liberdade para escolher.
 5. **Disponibilidade:** o membro vê as datas abertas e marca **"posso nestes dias"**. A função não é escolhida aqui: o coordenador já sabe o que cada um faz.
-6. **Escala:** o coordenador vê, em cada evento, quem está disponível e o que cada um faz, e monta a escala **manualmente** ou pede a **sugestão automática**, que ele pode ajustar.
-7. **Publicação:** o coordenador publica. Os escalados são avisados e veem o evento na agenda.
+6. **Escala em 3 passos:** em cada data, o coordenador escolhe **quem vai** (os que marcaram "posso" aparecem primeiro), define **o que cada um faz** (uma ou mais funções por pessoa, como tocar e cantar) e **revisa**. Mais adiante, a **sugestão automática** poderá preencher o primeiro passo.
+7. **Prévia:** o coordenador envia a prévia, de uma data ou do mês inteiro. A equipe vê a escala e cada escalado responde **Confirmo** ou **Pedir ajuste**, contando o motivo.
+8. **Ajustes:** o coordenador vê os pedidos com o motivo, muda o que precisar e salva. O pedido conta como resolvido e a pessoa confirma de novo.
+9. **Publicação:** o coordenador publica a data ou o mês inteiro. Cada um vê a escala no **calendário**.
 
 ### 6.4 Rotina: escalas recorrentes
 
 1. As funções do membro ficam salvas; ele não precisa informar de novo.
-2. O painel do membro mostra: **próxima escala**, **datas abertas para marcar disponibilidade**, **mural do departamento** e seus departamentos.
-3. Para repetir um formato, o coordenador **duplica uma escala** para uma nova data: o evento e as pessoas vêm como rascunho, prontos para ajustar.
-4. Se um escalado não puder ir, pede **remanejamento**; a vaga continua com ele até o coordenador decidir.
+2. O **início** mostra a **próxima escala** com o botão **Confirmo**, as **datas abertas** para marcar "posso" e os departamentos. O **calendário** mostra o mês inteiro e a lista de todas as escalas.
+3. No fim do mês, o coordenador abre as datas do mês seguinte com o atalho de **repetir dias da semana**, e o ciclo recomeça.
+4. Se surgir um imprevisto depois de publicada, o escalado responde **Não vou poder**, com o motivo; a vaga continua com ele até o coordenador decidir.
 
 ---
 
@@ -142,18 +148,18 @@ Todos os usuários de teste usam e-mails `@circlle.test` (ver `supabase/seed-tes
 
 ### 7.4 Eventos e disponibilidade
 
-- **RF17** Coordenador cria eventos com título, data, horário e local, sem limite de pessoas.
-- **RF18** Ciclo do evento: **rascunho → aberto para disponibilidade → escala publicada → realizado** (ou cancelado).
+- **RF17** Coordenador abre várias datas de uma vez, com título, horário e local, sem limite de pessoas, e pode repetir dias da semana no mês (ex.: todos os domingos de dezembro).
+- **RF18** Ciclo do evento: **aberto para disponibilidade → prévia → publicado → realizado** (ou cancelado).
 - **RF19** Membro vê as datas abertas dos seus departamentos e marca de uma vez em quais pode.
-- **RF20** Membro desmarca a disponibilidade enquanto a escala não foi publicada.
-- **RF21** Coordenador duplica uma escala para uma nova data, como rascunho.
+- **RF20** Membro desmarca a disponibilidade enquanto a data está aberta.
+- **RF21** Coordenador envia a prévia e publica as escalas do mês inteiro de uma vez.
 
 ### 7.5 Escala
 
-- **RF22** Coordenador vê, em cada evento, quem está disponível e as funções de cada um, e escala manualmente escolhendo a função de cada pessoa.
+- **RF22** Coordenador monta a escala em 3 passos: **quem vai** (disponíveis primeiro), **o que cada um faz** (uma ou mais funções por pessoa, com o resumo de quantos em cada função) e **revisar e enviar**.
 - **RF23** Sugestão automática: escolhe entre os disponíveis, cobrindo as funções do departamento, fazendo rodízio (quem foi menos escalado primeiro) e equilibrando quem está começando com quem tem mais experiência.
-- **RF24** Coordenador ajusta livremente e publica.
-- **RF25** Remanejamento: o escalado pede, informando motivo, data alternativa e quem pode trocar; o coordenador decide.
+- **RF24** Coordenador envia como prévia ou publica direto, e pode ajustar depois de publicada.
+- **RF25** Resposta do escalado: **Confirmo**, ou **Pedir ajuste** (na prévia) / **Não vou poder** (depois de publicada), sempre com o motivo. O coordenador vê as respostas de cada pessoa.
 - **RF26** Ensaios ligados a um evento ou avulsos.
 
 ### 7.6 Repertório (departamentos com o módulo ativo)
@@ -165,12 +171,12 @@ Todos os usuários de teste usam e-mails `@circlle.test` (ver `supabase/seed-tes
 ### 7.7 Comunicação
 
 - **RF30** Mural do departamento: coordenadores e quem tem permissão de repertório publicam; membros leem.
-- **RF31** Notificações push: pedido de entrada, entrada aprovada, datas abertas, escala publicada, repertório enviado, pedido de remanejamento e lembrete na véspera.
+- **RF31** Notificações push: pedido de entrada, entrada aprovada, datas abertas, prévia enviada, pedido de ajuste, escala publicada, repertório enviado e lembrete na véspera.
 - **RF32** Botão "compartilhar no WhatsApp" para código, evento e escala.
 
 ### 7.8 Painéis
 
-- **RF33** Painel do membro: próxima escala, datas abertas para marcar disponibilidade, mural e departamentos.
+- **RF33** Início do membro: atalho da próxima escala com o botão Confirmo, datas abertas para marcar disponibilidade, mural e departamentos.
 - **RF34** Painel do coordenador: pedidos de entrada, eventos abertos com o número de disponíveis e atalhos para escalar.
 - **RF35** Painel do administrador: departamentos e coordenadores.
 
@@ -179,6 +185,11 @@ Todos os usuários de teste usam e-mails `@circlle.test` (ver `supabase/seed-tes
 - **RF36** Desempenho por função após cada evento, visível só para os coordenadores.
 - **RF37** Relatórios de frequência, disponibilidade e músicas mais tocadas.
 - **RF38** Sincronização opcional com Google Agenda.
+
+### 7.10 Calendário
+
+- **RF39** Calendário pessoal do mês, com marcações de formas diferentes: **escalado**, **data aberta para marcar**, **marquei "posso"** e **data que eu coordeno**. Tocando no dia, aparecem os compromissos e as ações.
+- **RF40** Visão em lista com todas as escalas da pessoa, agrupadas por mês, com função e resposta, as datas esperando ela marcar e as escalas anteriores.
 
 ---
 
@@ -191,13 +202,15 @@ Todos os usuários de teste usam e-mails `@circlle.test` (ver `supabase/seed-tes
 - **RN05** Os papéis valem por departamento: a pessoa pode ser coordenadora em um e membro em outro.
 - **RN06** Entrar no departamento exige aprovação de um coordenador, junto com a confirmação das funções.
 - **RN07** Rótulos personalizados mudam apenas o que aparece na tela.
-- **RN08** O coordenador só escala alguém em uma função que a pessoa faz naquele departamento.
+- **RN08** Cada função da escala precisa ser uma que a pessoa faz naquele departamento. Uma pessoa pode ter várias funções na mesma data.
 - **RN09** Disponibilidade não garante escala: quem decide é o coordenador.
-- **RN10** Depois de publicada a escala, o membro não desmarca a disponibilidade; pede remanejamento.
-- **RN11** Até o coordenador decidir um remanejamento, a vaga continua com o membro.
+- **RN10** Depois que a data sai do "aberto", o membro não desmarca a disponibilidade; responde à escala.
+- **RN11** Até o coordenador decidir um pedido de ajuste, a vaga continua com o membro. Ao salvar a escala, o pedido conta como resolvido.
 - **RN12** Dados de desempenho são visíveis só aos coordenadores do departamento.
 - **RN13** O banco de músicas é privado por organização.
 - **RN14** O dono da plataforma não acessa escalas, avaliações e avisos das organizações.
+- **RN15** Se o coordenador mudar as funções de alguém que já respondeu, a pessoa volta a confirmar.
+- **RN16** A prévia é visível para todo o departamento; só os escalados respondem.
 
 ---
 
@@ -209,11 +222,15 @@ O MVP está pronto quando, com os usuários de teste, for possível:
 2. **Caio** vê o pedido da Paula, confirma a função e aprova.
 3. **Caio** cria as apresentações dos dias 7, 14 e 28 e abre para disponibilidade.
 4. **Paula** marca que pode nos dias 7 e 28; **Marcos**, em todos.
-5. **Caio** escala o dia 7 com Paula no Vocal e Marcos no Violão e publica.
-6. **Paula** e **Marcos** veem a escala na próxima escala do painel.
-7. **Rita** monta o repertório da apresentação e os escalados recebem.
-8. **Marcos** vê no perfil que faz Violão na Música e Foto na Mídia.
-9. Um membro de outra organização não vê nada do Coletivo Harmonia.
+5. **Caio** escala o dia 7 com Paula no Vocal e Marcos no **Violão e no Vocal**, e envia a **prévia**.
+6. **Marcos** pede ajuste: "nesse dia só consigo chegar às 20h". **Caio** vê o motivo, tira o Violão dele e publica.
+7. **Paula** confirma pelo início; **Marcos** confirma de novo.
+8. **Paula** e **Marcos** veem a escala no **calendário**, no mês e na lista.
+9. **Caio** abre todos os domingos do mês seguinte de uma vez.
+10. **Marcos** vê no perfil que faz Violão e Vocal na Música e Foto na Mídia.
+11. Um membro de outra organização não vê nada do Coletivo Harmonia.
+
+*Repertório (Rita) passou para a Etapa 2.*
 
 ---
 
@@ -230,21 +247,20 @@ O MVP está pronto quando, com os usuários de teste, for possível:
 
 ## 11. Etapas de entrega
 
-1. **Etapa 1 (MVP):** solicitação e aprovação de organização, papéis, departamentos com código, vínculo com funções, eventos abertos, disponibilidade, escala manual, publicação, painel do membro e notificações básicas.
-2. **Etapa 2:** sugestão automática, duplicar escala, remanejamento, ensaios, repertório, mural e calendário.
+1. **Etapa 1 (MVP):** solicitação e aprovação de organização, papéis, departamentos com código, vínculo com funções, datas do mês, disponibilidade, escala em 3 passos com várias funções, prévia e respostas, publicação do mês, calendário pessoal, início do membro e notificações básicas.
+2. **Etapa 2:** sugestão automática, ensaios, repertório e mural.
 3. **Etapa 3:** desempenho, relatórios, sincronização de agenda e troca de tom.
 
 ---
 
-## 12. Impacto no banco (próxima atualização do schema)
+## 12. Banco de dados (v3)
 
-- `admins_plataforma`: quem é dono do Circlle.
-- `organizacoes`: `status` (em análise, ativa, recusada, suspensa), dados da solicitação (tipo, cidade, tamanho, WhatsApp, e-mail) e `limite_departamentos` (vazio = sem limite).
-- `equipes` passa a se chamar `departamentos`, com `codigo` próprio.
-- `membros_departamento`: `papel` (coordenador, membro) e `perm_repertorio` no lugar de `resp_repertorio`.
-- `eventos`: status `aberto` e `duplicado_de` (evento de origem, quando vem de uma escala duplicada).
-- Nova tabela `disponibilidades` (membro, evento).
-- `convites` com validade dá lugar ao código fixo do departamento.
+- `eventos.status`: **aberto → previa → publicado → realizado** (ou cancelado).
+- `escalas`: uma linha por pessoa e data, com `resposta` (pendente, confirmado, ajuste), `motivo` e `respondido_em`.
+- Nova tabela `escala_funcoes`: as funções de cada escalado naquela data (uma ou mais).
+- Função `responder_escala`: o escalado confirma ou pede ajuste, só na prévia ou na escala publicada.
+- Saiu a tabela `remanejamentos`: o pedido de ajuste ocupa o lugar dela.
+- Instalação nova: `supabase/schema.sql`. Banco da v2: `supabase/migracao-v3.sql`, que não apaga dados.
 
 ---
 
@@ -254,8 +270,29 @@ O MVP está pronto quando, com os usuários de teste, for possível:
 |---|---|
 | Marca, logo, paleta e tokens | ✅ Pronto |
 | Protótipo navegável | ✅ Pronto (precisa trocar os termos religiosos) |
-| Projeto Vite + PWA + login | ✅ Pronto |
-| Banco v1 com RLS | ✅ Pronto (será atualizado conforme a seção 12) |
-| Primeiro acesso v1 (criar organização e convite por link) | 🔁 Será refeito com solicitação e código |
-| Documentação v2 | ✅ Este documento |
-| Etapa 1 | ⏳ Próximo passo |
+| Projeto Vite + PWA, publicado no Netlify | ✅ Pronto |
+| Banco v3 com RLS | ✅ Pronto |
+| Contratação, departamentos, código e aprovação | ✅ Pronto |
+| Datas do mês, disponibilidade e escala em 3 passos | ✅ Pronto |
+| Prévia, respostas e publicação do mês | ✅ Pronto |
+| Calendário pessoal | ✅ Pronto |
+| Painel do Circlle | ✅ Pronto |
+| Notificações push | ⏳ Próximo passo |
+
+---
+
+## 14. Revisão de requisitos (v3)
+
+| | Requisito | O que aconteceu |
+|---|---|---|
+| ➕ Entra | Calendário pessoal com mês e lista (RF39, RF40) | Saiu da Etapa 2 e entrou no MVP |
+| ➕ Entra | Prévia da escala com Confirmo e Pedir ajuste | Nova etapa entre "aberto" e "publicado" |
+| ➕ Entra | Várias funções por pessoa na mesma data | RN08 reescrita |
+| ➕ Entra | Escala do mês: repetir dias da semana, prévia e publicação do mês | RF17 e RF21 |
+| 🔁 Muda | Montar escala (RF22) | Passa a ser em 3 passos |
+| 🔁 Muda | Remanejamento (RF25, RN11) | Vira a resposta "Pedir ajuste" / "Não vou poder", com motivo |
+| 🔁 Muda | Início do membro (RF33) | Fica só a próxima escala, com Confirmo; a lista completa vai para o calendário |
+| 🔁 Muda | Ciclo do evento (RF18) | Ganha a prévia; o rascunho deixa de ser um passo do fluxo |
+| ➖ Sai | Duplicar escala | Substituído pelo atalho de repetir dias da semana |
+| ➖ Sai | Data alternativa e sugestão de troca no remanejamento | O motivo em texto cobre os dois casos |
+| ⏭️ Adia | Repertório no critério de aceite | Fica para a Etapa 2, junto com o mural |

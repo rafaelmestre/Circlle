@@ -14,6 +14,7 @@ import { telaEvento } from './telas/evento.js';
 import { telaPerfil } from './telas/perfil.js';
 import { telaOrganizacao } from './telas/organizacao.js';
 import { telaPlataforma } from './telas/plataforma.js';
+import { telaCalendario } from './telas/calendario.js';
 
 let usuario = null;
 let ctx = null;
@@ -47,7 +48,7 @@ function telaFalha(mensagem) {
   app.querySelector('#sair').addEventListener('click', () => supabase.auth.signOut());
 }
 
-// Rotas: #/  #/entrar  #/solicitar  #/perfil  #/org/:id  #/dep/:id  #/dep/:id/datas  #/evento/:id  #/plataforma
+// Rotas: #/  #/calendario  #/entrar  #/solicitar  #/perfil  #/org/:id  #/dep/:id  #/dep/:id/datas  #/evento/:id  #/plataforma
 function rotear() {
   if (!usuario || !ctx) return;
   const [rota, id, sub] = location.hash.replace(/^#\/?/, '').split('/');
@@ -68,6 +69,8 @@ function rotear() {
       return sub === 'datas' ? telaNovasDatas(ctx, id) : telaDepartamento(ctx, id, atualizar);
     case 'evento':
       return telaEvento(ctx, id);
+    case 'calendario':
+      return telaCalendario(ctx);
     case 'perfil':
       return telaPerfil(ctx, atualizar);
     case 'org':

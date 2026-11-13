@@ -1,5 +1,5 @@
 -- ═══════════════════════════════════════════════════
--- CIRCLLE — schema do banco v2 (Supabase / PostgreSQL)
+-- CIRCLLE — schema do banco v3 (Supabase / PostgreSQL)
 -- Rode no Supabase: SQL Editor → New query → Run
 -- ═══════════════════════════════════════════════════
 --
@@ -7,6 +7,7 @@
 --     Apaga todas as tabelas do Circlle (organizações, equipes,
 --     escalas…). As CONTAS de login continuam existindo e os
 --     perfis são recriados a partir delas.
+--     Já usa a v2 e não quer perder dados? Rode migracao-v3.sql.
 --
 -- Estrutura (ver docs/documentacao.md):
 --   organização (grupo) → departamentos → eventos → disponibilidades → escalas
@@ -22,7 +23,7 @@ drop trigger if exists ao_criar_usuario on auth.users;
 drop table if exists
   public.push_inscricoes, public.avisos, public.avaliacoes, public.repertorio_evento,
   public.musicas, public.remanejamentos, public.indisponibilidades, public.disponibilidades,
-  public.escalas, public.eventos, public.convites, public.membro_funcoes, public.funcoes,
+  public.escala_funcoes, public.escalas, public.eventos, public.convites, public.membro_funcoes, public.funcoes,
   public.membros_equipe, public.membros_departamento, public.equipes, public.departamentos,
   public.membros_organizacao, public.organizacoes, public.admins_plataforma, public.perfis
   cascade;
@@ -31,7 +32,8 @@ drop function if exists
   public.proteger_escala(), public.excluir_minha_conta(),
   public.eh_membro_org(uuid), public.eh_admin_org(uuid), public.org_da_equipe(uuid),
   public.equipe_do_evento(uuid), public.equipe_da_escala(uuid), public.eh_membro_equipe(uuid),
-  public.eh_lider_equipe(uuid), public.pode_repertorio(uuid)
+  public.eh_lider_equipe(uuid), public.pode_repertorio(uuid), public.validar_escala_funcao(),
+  public.responder_escala(uuid, text, text)
   cascade;
 
 
@@ -190,7 +192,7 @@ create table public.eventos (
   inicio                  timestamptz not null,
   fim                     timestamptz,
   status                  text not null default 'aberto'
-                            check (status in ('rascunho', 'aberto', 'publicado', 'realizado', 'cancelado')),
+                            check (status in ('rascunho', 'aberto', 'previa', 'publicado', 'realizado', 'cancelado')),
   responsavel_repertorio  uuid references public.perfis(id) on delete set null,
   criado_por              uuid default auth.uid() references public.perfis(id) on delete set null,
   created_at              timestamptz not null default now(),
@@ -206,29 +208,25 @@ create table public.disponibilidades (
   primary key (evento_id, usuario_id)
 );
 
--- Quem foi escalado e em qual função
+-- Quem foi escalado e a resposta dele (prévia e escala publicada)
 create table public.escalas (
-  id          uuid primary key default gen_random_uuid(),
-  evento_id   uuid not null references public.eventos(id) on delete cascade,
-  usuario_id  uuid not null references public.perfis(id) on delete cascade,
-  funcao_id   uuid references public.funcoes(id) on delete set null,
-  presenca    text check (presenca in ('presente', 'faltou')),
-  sugerido    boolean not null default false,
-  created_at  timestamptz not null default now(),
+  id             uuid primary key default gen_random_uuid(),
+  evento_id      uuid not null references public.eventos(id) on delete cascade,
+  usuario_id     uuid not null references public.perfis(id) on delete cascade,
+  resposta       text not null default 'pendente' check (resposta in ('pendente', 'confirmado', 'ajuste')),
+  motivo         text check (char_length(motivo) <= 300),
+  respondido_em  timestamptz,
+  presenca       text check (presenca in ('presente', 'faltou')),
+  sugerido       boolean not null default false,
+  created_at     timestamptz not null default now(),
   unique (evento_id, usuario_id)
 );
 
-create table public.remanejamentos (
-  id                uuid primary key default gen_random_uuid(),
-  escala_id         uuid not null references public.escalas(id) on delete cascade,
-  solicitante       uuid not null default auth.uid() references public.perfis(id) on delete cascade,
-  motivo            text check (char_length(motivo) <= 300),
-  data_alternativa  date,
-  sugestao_troca    uuid references public.perfis(id) on delete set null,
-  status            text not null default 'pendente' check (status in ('pendente', 'aprovado', 'recusado')),
-  decidido_por      uuid references public.perfis(id) on delete set null,
-  decidido_em       timestamptz,
-  created_at        timestamptz not null default now()
+-- O que cada escalado faz naquela data: pode ser mais de uma função (tocar e cantar)
+create table public.escala_funcoes (
+  escala_id  uuid not null references public.escalas(id) on delete cascade,
+  funcao_id  uuid not null references public.funcoes(id) on delete cascade,
+  primary key (escala_id, funcao_id)
 );
 
 
@@ -296,7 +294,7 @@ create index organizacoes_solic_idx   on public.organizacoes (solicitado_por);
 create index eventos_dep_inicio_idx   on public.eventos (departamento_id, inicio);
 create index disponib_usuario_idx     on public.disponibilidades (usuario_id);
 create index escalas_usuario_idx      on public.escalas (usuario_id);
-create index remanej_escala_idx       on public.remanejamentos (escala_id);
+create index escala_funcoes_func_idx  on public.escala_funcoes (funcao_id);
 create index musicas_org_idx          on public.musicas (organizacao_id);
 create index avisos_dep_idx           on public.avisos (departamento_id, created_at desc);
 
@@ -505,32 +503,43 @@ create trigger papel_protegido
   before insert or update on public.membros_departamento
   for each row execute function public.proteger_papel();
 
--- Só escala quem está ativo, em função que faz (RN08)
+-- Só escala quem é membro ativo do departamento
 create or replace function public.validar_escala()
 returns trigger language plpgsql security definer set search_path = public as $$
-declare v_dep uuid;
 begin
-  -- Função apagada (cascata zera funcao_id): nada a validar
-  if tg_op = 'UPDATE' and new.funcao_id is null
-     and new.usuario_id = old.usuario_id and new.evento_id = old.evento_id then
-    return new;
-  end if;
-  v_dep := dep_do_evento(new.evento_id);
   if not exists (select 1 from membros_departamento
-                 where departamento_id = v_dep and usuario_id = new.usuario_id and status = 'ativo') then
+                 where departamento_id = dep_do_evento(new.evento_id)
+                   and usuario_id = new.usuario_id and status = 'ativo') then
     raise exception 'A pessoa não é membro ativo do departamento';
   end if;
-  if new.funcao_id is not null and not exists (
-       select 1 from membro_funcoes where usuario_id = new.usuario_id and funcao_id = new.funcao_id
-         and departamento_id = v_dep) then
+  return new;
+end $$;
+
+drop trigger if exists escala_validada on public.escalas;
+create trigger escala_validada
+  before insert or update of usuario_id, evento_id on public.escalas
+  for each row execute function public.validar_escala();
+
+-- Cada função da escala precisa ser uma que a pessoa faz naquele departamento (RN08)
+create or replace function public.validar_escala_funcao()
+returns trigger language plpgsql security definer set search_path = public as $$
+begin
+  if not exists (
+       select 1 from escalas s
+       join eventos e on e.id = s.evento_id
+       join membro_funcoes mf on mf.usuario_id = s.usuario_id
+                             and mf.departamento_id = e.departamento_id
+                             and mf.funcao_id = new.funcao_id
+       where s.id = new.escala_id) then
     raise exception 'A pessoa não faz essa função no departamento';
   end if;
   return new;
 end $$;
 
-create trigger escala_validada
-  before insert or update of usuario_id, funcao_id, evento_id on public.escalas
-  for each row execute function public.validar_escala();
+drop trigger if exists escala_funcao_validada on public.escala_funcoes;
+create trigger escala_funcao_validada
+  before insert or update on public.escala_funcoes
+  for each row execute function public.validar_escala_funcao();
 
 
 -- ───────────────────────────────────────────────────
@@ -547,7 +556,7 @@ alter table public.membro_funcoes        enable row level security;
 alter table public.eventos               enable row level security;
 alter table public.disponibilidades      enable row level security;
 alter table public.escalas               enable row level security;
-alter table public.remanejamentos        enable row level security;
+alter table public.escala_funcoes        enable row level security;
 alter table public.musicas               enable row level security;
 alter table public.repertorio_evento     enable row level security;
 alter table public.avaliacoes            enable row level security;
@@ -620,7 +629,7 @@ create policy "membro_funcoes: coordenador" on public.membro_funcoes for all to 
 -- EVENTOS: membros veem os abertos e publicados; coordenador gerencia
 create policy "eventos: ler" on public.eventos for select to authenticated
   using (eh_coord_dep(departamento_id)
-         or (eh_membro_dep(departamento_id) and status in ('aberto', 'publicado', 'realizado')));
+         or (eh_membro_dep(departamento_id) and status in ('aberto', 'previa', 'publicado', 'realizado')));
 create policy "eventos: coordenador gerencia" on public.eventos for all to authenticated
   using (eh_coord_dep(departamento_id)) with check (eh_coord_dep(departamento_id));
 
@@ -636,21 +645,18 @@ create policy "disponib: desmarcar" on public.disponibilidades for delete to aut
 create policy "disponib: coordenador" on public.disponibilidades for delete to authenticated
   using (eh_coord_dep(dep_do_evento(evento_id)));
 
--- ESCALAS: membros veem as publicadas do departamento; coordenador gerencia
+-- ESCALAS: o departamento vê a prévia e a escala publicada; coordenador gerencia
 create policy "escalas: ler" on public.escalas for select to authenticated
   using (eh_coord_dep(dep_do_evento(evento_id))
          or (eh_membro_dep(dep_do_evento(evento_id))
-             and exists (select 1 from eventos where id = evento_id and status in ('publicado', 'realizado'))));
+             and exists (select 1 from eventos where id = evento_id and status in ('previa', 'publicado', 'realizado'))));
 create policy "escalas: coordenador gerencia" on public.escalas for all to authenticated
   using (eh_coord_dep(dep_do_evento(evento_id))) with check (eh_coord_dep(dep_do_evento(evento_id)));
 
--- REMANEJAMENTOS: o escalado pede; o coordenador decide
-create policy "remanej: ler" on public.remanejamentos for select to authenticated
-  using (solicitante = auth.uid() or eh_coord_dep(dep_da_escala(escala_id)));
-create policy "remanej: pedir" on public.remanejamentos for insert to authenticated
-  with check (solicitante = auth.uid() and status = 'pendente'
-              and exists (select 1 from escalas where id = escala_id and usuario_id = auth.uid()));
-create policy "remanej: decidir" on public.remanejamentos for update to authenticated
+-- FUNÇÕES NA ESCALA: visíveis junto com a escala
+create policy "escala_funcoes: ler" on public.escala_funcoes for select to authenticated
+  using (exists (select 1 from escalas s where s.id = escala_id));
+create policy "escala_funcoes: coordenador gerencia" on public.escala_funcoes for all to authenticated
   using (eh_coord_dep(dep_da_escala(escala_id))) with check (eh_coord_dep(dep_da_escala(escala_id)));
 
 -- MÚSICAS: banco privado da organização
@@ -699,6 +705,32 @@ grant execute on function public.novo_codigo(uuid) to authenticated;
 grant execute on function public.excluir_minha_conta() to authenticated;
 
 
+-- O escalado responde à prévia ou à escala publicada:
+-- "confirmado" ou "ajuste" (com motivo). A vaga continua com ele até o coordenador decidir.
+create or replace function public.responder_escala(p_evento uuid, p_resposta text, p_motivo text default null)
+returns void language plpgsql security definer set search_path = public as $$
+begin
+  if p_resposta not in ('confirmado', 'ajuste') then raise exception 'Resposta inválida'; end if;
+  if p_resposta = 'ajuste' and coalesce(trim(p_motivo), '') = '' then
+    raise exception 'Conte o motivo do ajuste';
+  end if;
+  if not exists (select 1 from eventos where id = p_evento and status in ('previa', 'publicado'))
+     or not eh_membro_dep(dep_do_evento(p_evento)) then
+    raise exception 'Esta escala não está aberta para respostas';
+  end if;
+
+  update escalas
+     set resposta = p_resposta,
+         motivo = case when p_resposta = 'ajuste' then left(trim(p_motivo), 300) end,
+         respondido_em = now()
+   where evento_id = p_evento and usuario_id = auth.uid();
+  if not found then raise exception 'Você não está nesta escala'; end if;
+end $$;
+
+revoke all on function public.responder_escala(uuid, text, text) from public, anon;
+grant execute on function public.responder_escala(uuid, text, text) to authenticated;
+
+
 -- ───────────────────────────────────────────────────
 -- 11b. PAINEL DO CIRCLLE (só números agregados, RN14)
 -- ───────────────────────────────────────────────────
@@ -723,7 +755,7 @@ begin
     'pedidos_pendentes', (select count(*) from membros_departamento where status = 'pendente'),
     'datas_proximas', (select count(*) from eventos
                        where inicio between now() and now() + interval '30 days'
-                         and status in ('aberto', 'publicado')),
+                         and status in ('aberto', 'previa', 'publicado')),
     'escalas_publicadas_30d', (select count(*) from eventos
                                where status in ('publicado', 'realizado')
                                  and inicio between now() - interval '30 days' and now() + interval '30 days'),

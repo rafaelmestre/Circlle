@@ -27,7 +27,7 @@ begin
     'pedidos_pendentes', (select count(*) from membros_departamento where status = 'pendente'),
     'datas_proximas', (select count(*) from eventos
                        where inicio between now() and now() + interval '30 days'
-                         and status in ('aberto', 'publicado')),
+                         and status in ('aberto', 'previa', 'publicado')),
     'escalas_publicadas_30d', (select count(*) from eventos
                                where status in ('publicado', 'realizado')
                                  and inicio between now() - interval '30 days' and now() + interval '30 days'),

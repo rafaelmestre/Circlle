@@ -1,6 +1,6 @@
 import { supabase } from '../lib/supabase.js';
 import { htmlPainelPlataforma } from './painelPlataforma.js';
-import { escapar, primeiroNome, iniciais, formatarData, diaMes, casca, icone, vazio, aviso, traduzirErro, comBotao } from '../lib/ui.js';
+import { escapar, primeiroNome, iniciais, formatarData, diaMes, casca, icone, vazio, aviso, traduzirErro, comBotao, nomesFuncoes } from '../lib/ui.js';
 
 // Painel do membro (RF33): próxima escala, datas abertas e departamentos
 export async function telaInicio(ctx) {
@@ -9,9 +9,9 @@ export async function telaInicio(ctx) {
 
   const [escalasRes, abertosRes, dispRes] = await Promise.all([
     supabase.from('escalas')
-      .select('id, funcoes(nome), eventos!inner(id, titulo, local, inicio, status, departamentos(nome))')
+      .select('id, resposta, escala_funcoes(funcoes(nome)), eventos!inner(id, titulo, local, inicio, status, departamentos(nome))')
       .eq('usuario_id', ctx.usuario.id)
-      .eq('eventos.status', 'publicado')
+      .in('eventos.status', ['previa', 'publicado'])
       .gte('eventos.inicio', agora),
     depsAtivos.length
       ? supabase.from('eventos')
@@ -31,13 +31,26 @@ export async function telaInicio(ctx) {
   const pendentes = ctx.vinculos.filter((v) => v.status === 'pendente');
 
   const destaque = proximas[0];
+  const aguardando = proximas.filter((e) => e.resposta === 'pendente').length;
   const blocoDestaque = destaque ? `
-    <a class="destaque" href="#/evento/${destaque.eventos.id}">
-      <span class="destaque__rotulo">Sua próxima escala</span>
+    <section class="destaque">
+      <span class="destaque__rotulo">
+        Sua próxima escala${destaque.eventos.status === 'previa' ? ' · <span class="destaque__tag">prévia</span>' : ''}
+      </span>
       <strong class="destaque__titulo">${escapar(destaque.eventos.titulo)}</strong>
       <span>${escapar(formatarData(destaque.eventos.inicio))}</span>
-      <span>${escapar(destaque.eventos.departamentos.nome)} · ${escapar(destaque.funcoes?.nome ?? 'Função a definir')}</span>
-    </a>` : '';
+      <span>${escapar(destaque.eventos.departamentos.nome)} · ${escapar(nomesFuncoes(destaque))}</span>
+      <div class="destaque__acoes">
+        ${destaque.resposta === 'pendente'
+          ? `<button class="btn btn-sm destaque__btn" id="confirmarProxima">${icone.check(16)} Confirmo</button>`
+          : `<span class="destaque__estado">${destaque.resposta === 'confirmado' ? `${icone.check(16)} Você confirmou` : 'Você pediu ajuste'}</span>`}
+        <a class="btn btn-sm destaque__link" href="#/evento/${destaque.eventos.id}">Ver escala</a>
+      </div>
+    </section>` : depsAtivos.length ? `
+    <section class="card vazio-guia">
+      <h2 class="cartao__titulo">Você ainda não está em nenhuma escala</h2>
+      <p class="texto-fraco">Marque abaixo os dias em que você pode ir. O coordenador monta a escala com quem marcou, e ela aparece aqui.</p>
+    </section>` : '';
 
   const linhaEvento = (e, extra = '') => {
     const { dia, mes } = diaMes(e.inicio);
@@ -102,15 +115,16 @@ export async function telaInicio(ctx) {
         está com o coordenador. Assim que ele aprovar, as datas aparecem aqui.</p>` : ''}
 
       ${proximas.length > 1 ? `
-        <section class="secao">
-          <h2>Próximas escalas</h2>
-          <div class="lista">
-            ${proximas.slice(1).map((e) => `
-              <a class="lista__item lista__item--link" href="#/evento/${e.eventos.id}">
-                ${linhaEvento(e.eventos, `<span class="badge badge--confirmed">${escapar(e.funcoes?.nome ?? 'Escalado')}</span>`)}
-              </a>`).join('')}
-          </div>
-        </section>` : ''}
+        <a class="lista__item lista__item--link atalho-calendario" href="#/calendario">
+          <span class="icon-circle">${icone.calendario()}</span>
+          <span class="lista__texto">
+            <strong>Mais ${proximas.length - 1} ${proximas.length - 1 === 1 ? 'escala' : 'escalas'} pela frente</strong>
+            <small>${aguardando > (destaque.resposta === 'pendente' ? 1 : 0)
+              ? `${aguardando} ${aguardando === 1 ? 'espera' : 'esperam'} sua resposta · ver no calendário`
+              : 'Ver todas no calendário'}</small>
+          </span>
+          ${icone.seta()}
+        </a>` : ''}
 
       ${depsAtivos.length ? `
         <section class="secao">
@@ -142,6 +156,14 @@ export async function telaInicio(ctx) {
         <a class="btn btn-ghost" href="#/entrar">${icone.mais()} Entrar com código</a>
       </section>
     </main>`);
+
+  document.querySelector('#confirmarProxima')?.addEventListener('click', async (e) => {
+    const { error } = await comBotao(e.currentTarget, () =>
+      supabase.rpc('responder_escala', { p_evento: destaque.eventos.id, p_resposta: 'confirmado', p_motivo: null }));
+    if (error) return aviso(traduzirErro(error));
+    aviso('Presença confirmada!');
+    telaInicio(ctx);
+  });
 
   // Marcar / desmarcar disponibilidade (RF19, RF20)
   document.querySelectorAll('[data-evento]').forEach((botao) =>

@@ -1,13 +1,20 @@
 import { supabase } from '../lib/supabase.js';
-import { escapar, iniciais, formatarData, diaMes, casca, icone, botaoVoltar, vazio, aviso, traduzirErro, comBotao } from '../lib/ui.js';
+import { escapar, iniciais, formatarData, diaMes, casca, icone, botaoVoltar, vazio, aviso, traduzirErro, comBotao, STATUS_EVENTO } from '../lib/ui.js';
 
-const STATUS = {
-  rascunho: ['Rascunho', 'badge--reassign'],
-  aberto: ['Aberto', 'badge--pending'],
-  publicado: ['Publicado', 'badge--confirmed'],
-  realizado: ['Realizado', 'badge--confirmed'],
-  cancelado: ['Cancelado', 'badge--declined']
-};
+
+const fmtMes = new Intl.DateTimeFormat('pt-BR', { month: 'long', year: 'numeric' });
+
+// Agrupa as datas por mês: [["Dezembro de 2026", [...]], ...]
+function meses(eventos) {
+  const grupos = new Map();
+  for (const e of eventos) {
+    const nome = fmtMes.format(new Date(e.inicio));
+    const chave = nome.charAt(0).toUpperCase() + nome.slice(1);
+    if (!grupos.has(chave)) grupos.set(chave, []);
+    grupos.get(chave).push(e);
+  }
+  return [...grupos.entries()];
+}
 
 // Painel do coordenador (RF11, RF12, RF14–RF16, RF34)
 export async function telaDepartamento(ctx, depId, recarregarContexto) {
@@ -16,7 +23,7 @@ export async function telaDepartamento(ctx, depId, recarregarContexto) {
     supabase.from('membros_departamento').select('usuario_id, papel, perm_repertorio, status, perfis(nome)').eq('departamento_id', depId).order('created_at'),
     supabase.from('funcoes').select('id, nome').eq('departamento_id', depId).order('nome'),
     supabase.from('membro_funcoes').select('usuario_id, funcao_id').eq('departamento_id', depId),
-    supabase.from('eventos').select('id, titulo, inicio, status, disponibilidades(count)')
+    supabase.from('eventos').select('id, titulo, inicio, status, disponibilidades(count), escalas(count)')
       .eq('departamento_id', depId).gte('inicio', new Date(Date.now() - 86400000).toISOString()).order('inicio')
   ]);
 
@@ -83,24 +90,44 @@ export async function telaDepartamento(ctx, depId, recarregarContexto) {
           <h2>Datas</h2>
           <a class="btn btn-primary btn-sm" href="#/dep/${dep.id}/datas">${icone.mais()} Abrir datas</a>
         </div>
-        <div class="lista">
-          ${eventos.length ? eventos.map((e) => {
-            const { dia, mes } = diaMes(e.inicio);
-            const [rotulo, classe] = STATUS[e.status];
-            const disp = e.disponibilidades?.[0]?.count ?? 0;
-            return `
-              <a class="lista__item lista__item--link" href="#/evento/${e.id}">
-                <div class="data">
-                  <div class="data__dia"><strong>${dia}</strong><span>${escapar(mes)}</span></div>
-                  <div class="data__info">
-                    <strong>${escapar(e.titulo)}</strong>
-                    <span>${escapar(formatarData(e.inicio).split(' · ')[1])} · ${disp} ${disp === 1 ? 'disponível' : 'disponíveis'}</span>
-                  </div>
-                  <span class="badge ${classe}">${rotulo}</span>
-                </div>
-              </a>`;
-          }).join('') : vazio('Nenhuma data aberta. Abra as próximas datas para os membros marcarem disponibilidade.')}
-        </div>
+        ${eventos.length ? meses(eventos).map(([nomeMes, lista]) => {
+          const comEscala = lista.filter((e) => (e.escalas?.[0]?.count ?? 0) > 0);
+          const paraPrevia = comEscala.filter((e) => ['rascunho', 'aberto'].includes(e.status));
+          const paraPublicar = comEscala.filter((e) => ['rascunho', 'aberto', 'previa'].includes(e.status));
+          return `
+            <div class="mes-bloco" data-mes="${escapar(nomeMes)}">
+              <div class="mes-bloco__cab">
+                <h3>${escapar(nomeMes)}</h3>
+                <span class="texto-fraco">${lista.length} ${lista.length === 1 ? 'data' : 'datas'} · ${comEscala.length} com escala</span>
+              </div>
+              <div class="lista">
+                ${lista.map((e) => {
+                  const { dia, mes } = diaMes(e.inicio);
+                  const [rotulo, classe] = STATUS_EVENTO[e.status];
+                  const disp = e.disponibilidades?.[0]?.count ?? 0;
+                  const esc = e.escalas?.[0]?.count ?? 0;
+                  return `
+                    <a class="lista__item lista__item--link" href="#/evento/${e.id}">
+                      <div class="data">
+                        <div class="data__dia"><strong>${dia}</strong><span>${escapar(mes)}</span></div>
+                        <div class="data__info">
+                          <strong>${escapar(e.titulo)}</strong>
+                          <span>${escapar(formatarData(e.inicio).split(' · ')[1])} · ${disp} ${disp === 1 ? 'disponível' : 'disponíveis'} · ${esc} ${esc === 1 ? 'escalado' : 'escalados'}</span>
+                        </div>
+                        <span class="badge ${classe}">${rotulo}</span>
+                      </div>
+                    </a>`;
+                }).join('')}
+              </div>
+              ${paraPrevia.length || paraPublicar.length ? `
+                <div class="acoes acoes--linha">
+                  ${paraPrevia.length ? `<button class="btn btn-ghost btn-sm" data-lote="previa" data-ids="${paraPrevia.map((e) => e.id).join(',')}">
+                    Enviar prévia do mês (${paraPrevia.length})</button>` : ''}
+                  <button class="btn btn-primary btn-sm" data-lote="publicado" data-ids="${paraPublicar.map((e) => e.id).join(',')}">
+                    Publicar o mês (${paraPublicar.length})</button>
+                </div>` : ''}
+            </div>`;
+        }).join('') : vazio('Nenhuma data aberta. Abra as datas do mês para os membros marcarem em quais podem.')}
       </section>
 
       <section class="secao">
@@ -180,6 +207,22 @@ export async function telaDepartamento(ctx, depId, recarregarContexto) {
     aviso('Novo código gerado.');
     recarregar();
   });
+
+  // Prévia ou publicação do mês inteiro
+  document.querySelectorAll('[data-lote]').forEach((botao) =>
+    botao.addEventListener('click', async () => {
+      const ids = botao.dataset.ids.split(',').filter(Boolean);
+      const status = botao.dataset.lote;
+      const texto = status === 'previa'
+        ? `Enviar a prévia de ${ids.length} ${ids.length === 1 ? 'data' : 'datas'}? A equipe vai poder conferir e pedir ajustes.`
+        : `Publicar ${ids.length} ${ids.length === 1 ? 'escala' : 'escalas'}? Só as datas que já têm gente escalada entram.`;
+      if (!confirm(texto)) return;
+      const { error } = await comBotao(botao, () => supabase.from('eventos').update({ status }).in('id', ids));
+      if (error) return aviso(traduzirErro(error));
+      aviso(status === 'previa' ? 'Prévia do mês enviada!' : 'Escalas do mês publicadas!');
+      recarregar();
+    })
+  );
 
   // Pedidos: ajustar funções e aprovar (RF14)
   document.querySelectorAll('.pedido').forEach((cartao) => {

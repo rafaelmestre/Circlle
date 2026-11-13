@@ -41,10 +41,13 @@ Ferramentas de gestão costumam ser caras e feitas para grandes organizações. 
 ## ✨ Funcionalidades
 
 **Escalas**
+- **Calendário pessoal**: o mês com tudo marcado (escalado, datas abertas, “posso” marcado) e a lista de todas as escalas
 - **Disponibilidade**: o membro marca as datas em que pode, em vez de ser cobrado um por um
-- **Sem limite de pessoas** por evento: o coordenador escolhe entre todos os disponíveis
-- **Sugestão automática** em rodízio, com a palavra final do coordenador
-- **Duplicar escala**, **ensaios** e **pedido de remanejamento**
+- **Escala do mês**: abra todos os domingos (ou qualquer dia da semana) de uma vez e publique o mês inteiro
+- **Montar a escala em 3 passos**: quem vai, o que cada um faz e revisar
+- **Várias funções por pessoa** na mesma data, como tocar e cantar
+- **Prévia**: a equipe confere a escala e confirma ou pede ajuste antes de publicar
+- **Sugestão automática** em rodízio e **ensaios** (em breve)
 
 **Repertório** (módulo opcional por departamento)
 - Música, artista, tom, link e cifra, num **banco privado** da organização
@@ -77,7 +80,7 @@ Os termos são neutros, e **cada organização pode renomeá-los** para a sua pr
 |---|---|---|
 | **Administrador** | Equipe do Circlle | Gerencia a organização e promove coordenadores |
 | **Coordenador** | Administrador | Configura o departamento, aprova membros, abre eventos e publica escalas |
-| **Membro** | Coordenador | Marca disponibilidade, vê suas escalas e pede remanejamento |
+| **Membro** | Coordenador | Marca disponibilidade, vê suas escalas no calendário, confirma ou pede ajuste |
 | **Permissão de repertório** | Coordenador | Membro que monta e envia o repertório |
 
 ---
@@ -122,7 +125,7 @@ cp .env.example .env   # preencha com a URL e a chave publishable do Supabase
 npm run dev
 ```
 
-**Banco de dados:** crie um projeto no [Supabase](https://supabase.com) e rode [`supabase/schema.sql`](supabase/schema.sql) no **SQL Editor**.
+**Banco de dados:** crie um projeto no [Supabase](https://supabase.com) e rode [`supabase/schema.sql`](supabase/schema.sql) no **SQL Editor**. Para dados de teste, rode também [`supabase/seed-teste.sql`](supabase/seed-teste.sql). Quem já usa a versão anterior do banco roda só [`supabase/migracao-v3.sql`](supabase/migracao-v3.sql), que não apaga dados.
 
 ## 📁 Estrutura
 
@@ -135,7 +138,7 @@ Circlle/
 │   ├── lib/supabase.js   # cliente do Supabase
 │   └── styles/           # tokens.css (design) e main.css
 ├── public/               # favicon e ícones do PWA
-├── supabase/schema.sql   # tabelas, funções e políticas de RLS
+├── supabase/             # schema, migrações e dados de teste
 ├── assets/logo/          # versões do logo
 └── docs/                 # documentação do projeto
 ```
@@ -147,21 +150,24 @@ Circlle/
 **Fundação**
 - [x] Marca, logo, paleta e tokens de design
 - [x] Protótipo navegável
-- [x] Projeto Vite + PWA, login e cadastro
+- [x] Projeto Vite + PWA, publicado no Netlify
 - [x] Banco com Row Level Security
-- [x] Documentação v2
+- [x] Documentação v3
 
 **Etapa 1: MVP**
-- [ ] Solicitação e aprovação de organização
-- [ ] Papéis, departamentos e entrada por código
-- [ ] Eventos abertos e disponibilidade
-- [ ] Escala manual e publicação
-- [ ] Painel do membro e notificações
+- [x] Solicitação e aprovação de organização
+- [x] Papéis, departamentos e entrada por código
+- [x] Datas abertas e disponibilidade
+- [x] Escala em 3 passos, com várias funções por pessoa
+- [x] Prévia, confirmação e pedido de ajuste
+- [x] Escala do mês e calendário pessoal
+- [x] Painel do Circlle
+- [ ] Notificações push
 
 **Etapa 2**
-- [ ] Sugestão automática e duplicar escala
-- [ ] Remanejamento e ensaios
-- [ ] Repertório, mural e calendário
+- [ ] Sugestão automática de escala
+- [ ] Ensaios
+- [ ] Repertório e mural
 
 **Etapa 3**
 - [ ] Desempenho e relatórios

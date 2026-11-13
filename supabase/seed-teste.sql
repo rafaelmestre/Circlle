@@ -122,13 +122,13 @@ insert into public.membro_funcoes (departamento_id, usuario_id, funcao_id) value
 
 
 -- ───────────────────────────────────────────────────
--- 5. Datas: três apresentações abertas e uma já publicada
+-- 5. Datas: uma publicada, uma em prévia e três abertas
 -- ───────────────────────────────────────────────────
 insert into public.eventos (id, departamento_id, titulo, local, inicio, status, criado_por) values
   ('e0000000-0000-4000-8000-000000000001', 'c0000000-0000-4000-8000-000000000001', 'Apresentação na praça', 'Praça Central',
    (date_trunc('day', now() at time zone 'America/Sao_Paulo') + interval '3 days 19 hours') at time zone 'America/Sao_Paulo', 'publicado', 'b0000000-0000-4000-8000-000000000002'),
   ('e0000000-0000-4000-8000-000000000002', 'c0000000-0000-4000-8000-000000000001', 'Apresentação na praça', 'Praça Central',
-   (date_trunc('day', now() at time zone 'America/Sao_Paulo') + interval '10 days 19 hours') at time zone 'America/Sao_Paulo', 'aberto', 'b0000000-0000-4000-8000-000000000002'),
+   (date_trunc('day', now() at time zone 'America/Sao_Paulo') + interval '10 days 19 hours') at time zone 'America/Sao_Paulo', 'previa', 'b0000000-0000-4000-8000-000000000002'),
   ('e0000000-0000-4000-8000-000000000003', 'c0000000-0000-4000-8000-000000000001', 'Apresentação na praça', 'Praça Central',
    (date_trunc('day', now() at time zone 'America/Sao_Paulo') + interval '17 days 19 hours') at time zone 'America/Sao_Paulo', 'aberto', 'b0000000-0000-4000-8000-000000000002'),
   ('e0000000-0000-4000-8000-000000000004', 'c0000000-0000-4000-8000-000000000001', 'Sarau de fim de mês', 'Sede do coletivo',
@@ -143,11 +143,26 @@ insert into public.disponibilidades (evento_id, usuario_id) values
   ('e0000000-0000-4000-8000-000000000003', 'b0000000-0000-4000-8000-000000000006'),
   ('e0000000-0000-4000-8000-000000000004', 'b0000000-0000-4000-8000-000000000005');
 
--- Escala já publicada da primeira apresentação
-insert into public.escalas (evento_id, usuario_id, funcao_id) values
-  ('e0000000-0000-4000-8000-000000000001', 'b0000000-0000-4000-8000-000000000005', 'd0000000-0000-4000-8000-000000000001'),
-  ('e0000000-0000-4000-8000-000000000001', 'b0000000-0000-4000-8000-000000000006', 'd0000000-0000-4000-8000-000000000002'),
-  ('e0000000-0000-4000-8000-000000000001', 'b0000000-0000-4000-8000-000000000002', 'd0000000-0000-4000-8000-000000000003');
+-- Escalas: a primeira apresentação já publicada e a segunda em prévia.
+-- Marcos toca violão e canta na mesma data (duas funções).
+insert into public.escalas (id, evento_id, usuario_id, resposta, motivo, respondido_em) values
+  ('f1000000-0000-4000-8000-000000000001', 'e0000000-0000-4000-8000-000000000001', 'b0000000-0000-4000-8000-000000000005', 'confirmado', null, now()),
+  ('f1000000-0000-4000-8000-000000000002', 'e0000000-0000-4000-8000-000000000001', 'b0000000-0000-4000-8000-000000000006', 'pendente',   null, null),
+  ('f1000000-0000-4000-8000-000000000003', 'e0000000-0000-4000-8000-000000000001', 'b0000000-0000-4000-8000-000000000002', 'confirmado', null, now()),
+  ('f1000000-0000-4000-8000-000000000004', 'e0000000-0000-4000-8000-000000000002', 'b0000000-0000-4000-8000-000000000005', 'confirmado', null, now()),
+  ('f1000000-0000-4000-8000-000000000005', 'e0000000-0000-4000-8000-000000000002', 'b0000000-0000-4000-8000-000000000006', 'ajuste',
+   'Nesse dia só consigo chegar às 20h. Dá pra eu ficar só no vocal?', now()),
+  ('f1000000-0000-4000-8000-000000000006', 'e0000000-0000-4000-8000-000000000002', 'b0000000-0000-4000-8000-000000000002', 'pendente',   null, null);
+
+insert into public.escala_funcoes (escala_id, funcao_id) values
+  ('f1000000-0000-4000-8000-000000000001', 'd0000000-0000-4000-8000-000000000001'),  -- Rita: Vocal
+  ('f1000000-0000-4000-8000-000000000002', 'd0000000-0000-4000-8000-000000000002'),  -- Marcos: Violão
+  ('f1000000-0000-4000-8000-000000000002', 'd0000000-0000-4000-8000-000000000001'),  -- Marcos: Vocal
+  ('f1000000-0000-4000-8000-000000000003', 'd0000000-0000-4000-8000-000000000003'),  -- Caio: Teclado
+  ('f1000000-0000-4000-8000-000000000004', 'd0000000-0000-4000-8000-000000000001'),
+  ('f1000000-0000-4000-8000-000000000005', 'd0000000-0000-4000-8000-000000000002'),
+  ('f1000000-0000-4000-8000-000000000005', 'd0000000-0000-4000-8000-000000000001'),
+  ('f1000000-0000-4000-8000-000000000006', 'd0000000-0000-4000-8000-000000000003');
 
 
 -- ───────────────────────────────────────────────────
