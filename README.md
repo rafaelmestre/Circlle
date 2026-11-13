@@ -2,12 +2,12 @@
 
 <h1 align="center">Circlle</h1>
 
-> Escalas de voluntários sem planilha e sem grupo de WhatsApp bagunçado: monte a escala, envie o repertório, receba confirmações e acompanhe a evolução da equipe. Um PWA gratuito para igrejas, bandas, corais, ONGs e qualquer grupo que se organiza em escalas.
+> Escalas sem planilha e sem grupo de WhatsApp bagunçado: abra as datas, receba a disponibilidade dos membros, monte a escala e avise todo mundo. Um PWA para projetos sociais, ONGs, bandas, coletivos, escolas e qualquer grupo que se organiza em escalas.
 
-![Status](https://img.shields.io/badge/status-em%20planejamento-F59E0B)
+![Status](https://img.shields.io/badge/status-em%20desenvolvimento-F59E0B)
 ![PWA](https://img.shields.io/badge/PWA-instalável-5A0FC8?logo=pwa&logoColor=white)
 ![Supabase](https://img.shields.io/badge/Supabase-Auth%20%2B%20Postgres-3FCF8E?logo=supabase&logoColor=white)
-![Custo](https://img.shields.io/badge/para%20o%20usuário-gratuito-22C55E)
+![Membros](https://img.shields.io/badge/para%20o%20membro-gratuito-22C55E)
 
 📄 **[Documentação completa do projeto →](docs/documentacao.md)**
 
@@ -15,65 +15,70 @@
 
 ## 🎯 O problema
 
-Quem já foi líder de equipe de voluntários conhece a rotina: a escala sai numa planilha ou numa foto no grupo, alguém avisa em cima da hora que não pode, o repertório chega picado em várias mensagens e ninguém sabe ao certo quem confirmou.
+Quem já coordenou voluntários conhece a rotina: a escala sai numa planilha ou numa foto no grupo, o coordenador passa dias perguntando quem pode em cada data, alguém avisa em cima da hora que não vai e ninguém sabe ao certo quem confirmou.
 
-E montar uma boa escala não é só rodiziar nomes. É saber colocar quem está começando ao lado de quem já tem segurança, respeitar a agenda de cada um e dar feedback para a equipe crescer.
+E montar uma boa escala não é só rodiziar nomes. É saber quem faz o quê, colocar quem está começando ao lado de quem já tem experiência e não chamar sempre as mesmas pessoas.
 
-O **Circlle** nasceu dessa experiência real como líder de ministério de música, mas foi pensado para **qualquer grupo**, religioso ou não, que trabalha com escalas.
+O **Circlle** nasceu da experiência real de coordenar escalas de música voluntária, e foi pensado para **qualquer grupo** que trabalha com escalas.
 
 ## 💡 Propósito
 
-Ferramentas de gestão costumam ser caras e feitas para grandes organizações. O Circlle é **gratuito para o usuário**, com foco em organizações pequenas, de periferia e de baixa renda, que também merecem tecnologia boa.
+Ferramentas de gestão costumam ser caras e feitas para grandes organizações. O Circlle é contratado pela organização com **valor acessível** e é **gratuito para os membros**, com foco em organizações pequenas, de periferia e de baixa renda, que também merecem tecnologia boa.
 
 ---
 
-## ✨ Funcionalidades planejadas
+## 🔄 Como funciona
+
+1. O grupo **solicita** o Circlle e, depois de aprovado, quem solicitou vira **Administrador**.
+2. O administrador cria os **departamentos** e promove membros a **Coordenadores**, um ou mais por departamento.
+3. O coordenador configura o departamento e envia o **código** dele pelo WhatsApp.
+4. O membro digita o código, marca **o que faz** (violão, foto, reparo elétrico…) e o coordenador aprova.
+5. O coordenador **abre as datas**, e cada membro marca **"posso nestes dias"**.
+6. O coordenador monta a escala, na mão ou com **sugestão automática**, ajusta e **publica**.
+
+---
+
+## ✨ Funcionalidades
 
 **Escalas**
-- **Sugestão de escala em rodízio**, respeitando indisponibilidades e equilibrando membros em evolução com os mais preparados
-- **O líder tem a palavra final**: ajusta a sugestão livremente antes de publicar
-- **Confirmação de presença** por membro, em cada escala
-- **Pedido de remanejamento** em vez de recusa: o membro indica o dia, o motivo e até quem pode trocar com ele, e a vaga só muda quando o líder aprova
-- **Ensaios** vinculados a um evento ou avulsos
+- **Disponibilidade**: o membro marca as datas em que pode, em vez de ser cobrado um por um
+- **Sem limite de pessoas** por evento: o coordenador escolhe entre todos os disponíveis
+- **Sugestão automática** em rodízio, com a palavra final do coordenador
+- **Duplicar escala**, **ensaios** e **pedido de remanejamento**
 
-**Repertório** (módulo opcional, ativado por equipe: a de louvor usa, a de recepção não)
-- Música, artista, tom, link do YouTube/Spotify e cifra
-- Atalho para a cifra no Cifra Club e **banco de cifras privado** da organização
-- **Transposição de tom** automática para cifras salvas (formato ChordPro)
+**Repertório** (módulo opcional por departamento)
+- Música, artista, tom, link e cifra, num **banco privado** da organização
+- Atalho para a cifra no Cifra Club e **troca de tom** automática
 
-**Equipe**
-- **Acompanhamento de desempenho** por função, visível só ao líder, como apoio para dar feedback e capacitar a equipe
-- **Mural de avisos** do líder e do responsável pelo repertório
-- **Calendário unificado** do membro, com sincronização opcional com o Google Agenda
-- **Convite por link** com aprovação do líder
-
-**Relatórios**
-- Frequência, confirmações e faltas por membro
-- Músicas mais tocadas e músicas esquecidas há muito tempo
+**Departamento**
+- Entrada por **código**, com aprovação do coordenador
+- **Funções de cada membro** registradas e editáveis no perfil
+- **Mural de avisos** e **notificações push**
+- **Acompanhamento de desempenho**, visível só aos coordenadores
 
 ---
 
-## 🧩 Terminologia neutra
+## 🧩 Vocabulário
 
-| No Circlle | Em uma igreja | Em uma banda ou ONG |
-|---|---|---|
-| Organização | Igreja | Banda, ONG |
-| Equipe | Ministério | Naipe, grupo de voluntários |
-| Evento | Culto | Show, ação social |
-| Função | Vocal, teclado | Guitarra, recepção |
+| No Circlle | Exemplos |
+|---|---|
+| Organização | Coletivo, ONG, banda, escola |
+| Departamento | Música, Mídia, Zeladoria |
+| Evento | Apresentação, ação social, plantão |
+| Função | Violão, foto, reparo elétrico |
 
-Os termos neutros são o padrão, e **cada organização pode renomeá-los** para a sua própria linguagem.
+Os termos são neutros, e **cada organização pode renomeá-los** para a sua própria linguagem.
 
 ## 👥 Perfis
 
-Os papéis são definidos **por equipe**: a mesma pessoa pode ser líder na música e membro na recepção.
+**Todo mundo entra como Membro**, e o acesso é liberado por quem está acima. Os papéis valem **por departamento**: a mesma pessoa pode coordenar a Mídia e ser membro da Música.
 
-| Perfil | O que faz |
-|---|---|
-| **Administrador** | Cria a organização, as equipes e define os líderes |
-| **Líder de equipe** | Monta escalas, aprova membros e remanejamentos, acompanha o desempenho |
-| **Responsável pelo repertório** | Monta e envia as músicas; pode ser o líder ou alguém delegado por evento. Só existe em equipes com repertório ativo |
-| **Membro** | Vê suas escalas, marca indisponibilidade, confirma presença e pede remanejamento |
+| Perfil | Quem libera | O que faz |
+|---|---|---|
+| **Administrador** | Equipe do Circlle | Gerencia a organização e promove coordenadores |
+| **Coordenador** | Administrador | Configura o departamento, aprova membros, abre eventos e publica escalas |
+| **Membro** | Coordenador | Marca disponibilidade, vê suas escalas e pede remanejamento |
+| **Permissão de repertório** | Coordenador | Membro que monta e envia o repertório |
 
 ---
 
@@ -81,7 +86,7 @@ Os papéis são definidos **por equipe**: a mesma pessoa pode ser líder na mús
 
 Modo escuro como padrão, gradiente vibrante e formas arredondadas, com o **círculo** como elemento central da marca.
 
-O símbolo é um **"C" envolvido por um círculo**: a equipe no centro e as pessoas ao redor, girando como o rodízio da escala. As versões (gradiente, cor única, branca, escura e ícone do app) ficam em [`assets/logo/`](assets/logo/), e os ícones do PWA em [`icons/`](icons/). Os tokens ficam em [`css/tokens.css`](css/tokens.css), com modo claro automático.
+O símbolo é um **"C" envolvido por um círculo**: a equipe no centro e as pessoas ao redor, girando como o rodízio da escala. As versões (gradiente, cor única, branca, escura e ícone do app) ficam em [`assets/logo/`](assets/logo/), e os ícones do PWA em [`public/icons/`](public/icons/). Os tokens ficam em [`src/styles/tokens.css`](src/styles/tokens.css), com modo claro automático.
 
 | Papel | Cor |
 |---|---|
@@ -107,32 +112,66 @@ O símbolo é um **"C" envolvido por um círculo**: a equipe no centro e as pess
 
 ---
 
+## 🚀 Rodando localmente
+
+```bash
+git clone https://github.com/rafaelmestre/Circlle.git
+cd Circlle
+npm install
+cp .env.example .env   # preencha com a URL e a chave publishable do Supabase
+npm run dev
+```
+
+**Banco de dados:** crie um projeto no [Supabase](https://supabase.com) e rode [`supabase/schema.sql`](supabase/schema.sql) no **SQL Editor**.
+
+## 📁 Estrutura
+
+```
+Circlle/
+├── index.html
+├── vite.config.js        # Vite + PWA (manifest e service worker)
+├── src/
+│   ├── main.js           # telas e roteamento pela sessão
+│   ├── lib/supabase.js   # cliente do Supabase
+│   └── styles/           # tokens.css (design) e main.css
+├── public/               # favicon e ícones do PWA
+├── supabase/schema.sql   # tabelas, funções e políticas de RLS
+├── assets/logo/          # versões do logo
+└── docs/                 # documentação do projeto
+```
+
+---
+
 ## 🗺️ Roadmap
 
+**Fundação**
+- [x] Marca, logo, paleta e tokens de design
+- [x] Protótipo navegável
+- [x] Projeto Vite + PWA, login e cadastro
+- [x] Banco com Row Level Security
+- [x] Documentação v2
+
 **Etapa 1: MVP**
-- [ ] Organizações, equipes e convites
-- [ ] Módulos opcionais por equipe e nomenclatura personalizável
-- [ ] Escalas com confirmação de presença
-- [ ] Repertório
-- [ ] Notificações
+- [ ] Solicitação e aprovação de organização
+- [ ] Papéis, departamentos e entrada por código
+- [ ] Eventos abertos e disponibilidade
+- [ ] Escala manual e publicação
+- [ ] Painel do membro e notificações
 
 **Etapa 2**
-- [ ] Remanejamento
-- [ ] Ensaios
-- [ ] Calendário unificado
-- [ ] Mural de avisos
+- [ ] Sugestão automática e duplicar escala
+- [ ] Remanejamento e ensaios
+- [ ] Repertório, mural e calendário
 
 **Etapa 3**
-- [ ] Sugestão automática de escala
-- [ ] Acompanhamento de desempenho
-- [ ] Relatórios
-- [ ] Sincronização com agenda e transposição de cifras
+- [ ] Desempenho e relatórios
+- [ ] Sincronização com agenda e troca de tom
 
 ---
 
 ## 👤 Autor
 
-**Rafael Mestre A. Araujo**: estudante de Análise e Desenvolvimento de Sistemas (PUC Minas), ex-líder de ministério de música e fundador da **Codemancer Studio**.
+**Rafael Mestre A. Araujo**: estudante de Análise e Desenvolvimento de Sistemas (PUC Minas), coordenador de escalas de música voluntária e fundador da **Codemancer Studio**.
 
 - GitHub: [@rafaelmestre](https://github.com/rafaelmestre)
 - Instagram: [@codemancerstudio](https://instagram.com/codemancerstudio)
