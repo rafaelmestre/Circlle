@@ -1,0 +1,87 @@
+import { supabase } from '../lib/supabase.js';
+import { escapar, casca, vazio, aviso, traduzirErro, comBotao } from '../lib/ui.js';
+
+const STATUS = {
+  em_analise: ['Em análise', 'badge--pending'],
+  ativa: ['Ativa', 'badge--confirmed'],
+  recusada: ['Recusada', 'badge--declined'],
+  suspensa: ['Suspensa', 'badge--declined']
+};
+
+// Painel da equipe do Circlle: aprovar, recusar e suspender grupos (RF07)
+export async function telaPlataforma(ctx) {
+  if (!ctx.plataforma) {
+    location.hash = '#/';
+    return;
+  }
+
+  const { data, error } = await supabase.from('organizacoes')
+    .select('id, nome, tipo, cidade, tamanho, whatsapp, email, status, created_at, perfis!organizacoes_solicitado_por_fkey(nome)')
+    .order('created_at', { ascending: false });
+  if (error) aviso(traduzirErro(error));
+  const orgs = data ?? [];
+  const pendentes = orgs.filter((o) => o.status === 'em_analise');
+  const demais = orgs.filter((o) => o.status !== 'em_analise');
+
+  const zap = (numero) => `https://wa.me/55${String(numero ?? '').replace(/\D/g, '').replace(/^55/, '')}`;
+
+  const cartao = (o) => {
+    const [rotulo, classe] = STATUS[o.status];
+    return `
+      <article class="card solicitacao" data-org="${o.id}">
+        <div class="equipe__cab">
+          <div>
+            <p class="equipe__org">${escapar(o.tipo ?? '')} · ${escapar(o.cidade ?? '')} · ${escapar(o.tamanho ?? '')} pessoas</p>
+            <h2 class="cartao__titulo">${escapar(o.nome)}</h2>
+          </div>
+          <span class="badge ${classe}">${rotulo}</span>
+        </div>
+        <p class="texto-fraco">
+          Solicitado por <strong>${escapar(o.perfis?.nome ?? '—')}</strong>
+          em ${new Date(o.created_at).toLocaleDateString('pt-BR')}<br>
+          <a href="${zap(o.whatsapp)}" target="_blank" rel="noopener">${escapar(o.whatsapp ?? '')}</a> ·
+          <a href="mailto:${escapar(o.email ?? '')}">${escapar(o.email ?? '')}</a>
+        </p>
+        <div class="acoes acoes--linha">
+          ${o.status === 'em_analise' ? `
+            <button class="btn btn-ghost btn-sm" data-status="recusada">Recusar</button>
+            <button class="btn btn-primary btn-sm" data-status="ativa">Aprovar</button>` : ''}
+          ${o.status === 'ativa' ? '<button class="btn btn-ghost btn-sm btn-perigo" data-status="suspensa">Suspender</button>' : ''}
+          ${o.status === 'suspensa' || o.status === 'recusada' ? '<button class="btn btn-ghost btn-sm" data-status="ativa">Ativar</button>' : ''}
+        </div>
+      </article>`;
+  };
+
+  casca(ctx, 'plataforma', `
+    <main class="tela tela--com-nav">
+      <div class="titulo">
+        <p class="passo">Equipe Circlle</p>
+        <h1>Grupos</h1>
+        <p>${pendentes.length} ${pendentes.length === 1 ? 'solicitação' : 'solicitações'} em análise</p>
+      </div>
+
+      <section class="secao">
+        <h2>Em análise</h2>
+        ${pendentes.map(cartao).join('') || vazio('Nenhuma solicitação nova.')}
+      </section>
+
+      <section class="secao">
+        <h2>Todos os grupos</h2>
+        ${demais.map(cartao).join('') || vazio('Nenhum grupo ainda.')}
+      </section>
+    </main>`);
+
+  const textos = { ativa: 'aprovar/ativar', recusada: 'recusar', suspensa: 'suspender' };
+  document.querySelectorAll('[data-status]').forEach((botao) =>
+    botao.addEventListener('click', async () => {
+      const org = botao.closest('[data-org]');
+      const nome = org.querySelector('.cartao__titulo').textContent;
+      if (!confirm(`Confirma ${textos[botao.dataset.status]} "${nome}"?`)) return;
+      const { error } = await comBotao(botao, () =>
+        supabase.rpc('analisar_organizacao', { p_org: org.dataset.org, p_status: botao.dataset.status }));
+      if (error) return aviso(traduzirErro(error));
+      aviso('Feito!');
+      telaPlataforma(ctx);
+    })
+  );
+}
