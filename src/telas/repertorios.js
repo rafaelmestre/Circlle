@@ -1,5 +1,6 @@
 import { supabase } from '../lib/supabase.js';
 import { escapar, casca, icone, vazio, aviso, traduzirErro, comBotao, diaMes } from '../lib/ui.js';
+import { listaArrastavel } from '../lib/listaArrastavel.js';
 
 const CHAVE_DEP = 'circlle:repertorios-dep';
 
@@ -51,12 +52,17 @@ export async function telaRepertorios(ctx, depParam) {
 
       <section class="secao">
         <h2>${escapar(dep.nome)}</h2>
-        <div class="lista">
+        ${reps.length ? '<p class="texto-fraco dica-lista">Deslize um repertório para a esquerda para excluir.</p>' : ''}
+        <div class="lista" id="listaReps">
           ${reps.map((r) => {
             const n = r.repertorio_itens?.[0]?.count ?? 0;
             const datas = datasDe[r.id] ?? [];
             return `
-              <a class="lista__item lista__item--link" href="#/repertorio/${r.id}">
+              <div class="arrastavel arrastavel--lista" data-item="${r.id}" data-nome="${escapar(r.nome)}" data-datas="${datas.length}">
+              <button type="button" class="arrastavel__apagar" data-apagar aria-label="Excluir ${escapar(r.nome)}">
+                ${icone.lixo(20)}<span>Excluir</span>
+              </button>
+              <a class="lista__item lista__item--link arrastavel__frente" data-frente draggable="false" href="#/repertorio/${r.id}">
                 <span class="icon-circle repertorio__icone" aria-hidden="true">${icone.musica(20)}</span>
                 <span class="lista__texto">
                   <strong>${escapar(r.nome)}</strong>
@@ -65,11 +71,36 @@ export async function telaRepertorios(ctx, depParam) {
                     : ' · sem data'}</small>
                 </span>
                 ${icone.seta()}
-              </a>`;
+              </a>
+              </div>`;
           }).join('') || vazio('Nenhum repertório ainda. Crie o primeiro e aplique numa data da escala.')}
         </div>
       </section>
     </main>`);
+
+  // Deslizar para excluir (mesmo gesto da lista de músicas)
+  const lista = document.querySelector('#listaReps');
+  if (reps.length) {
+    listaArrastavel(lista, {
+      confirmar: (id) => {
+        const el = lista.querySelector(`[data-item="${id}"]`);
+        const datas = Number(el.dataset.datas);
+        return confirm(`Excluir “${el.dataset.nome}”?${datas ? ` ${datas === 1 ? 'A data que usa' : `As ${datas} datas que usam`} este repertório ${datas === 1 ? 'fica' : 'ficam'} sem repertório.` : ''} As músicas continuam cadastradas.`);
+      },
+      aoApagar: async (id) => {
+        const { error } = await supabase.from('repertorios').delete().eq('id', id);
+        if (error) {
+          aviso(traduzirErro(error));
+          return false;
+        }
+        aviso('Repertório excluído.');
+        return true;
+      },
+      aoReordenar: (ordem) => {
+        if (!ordem.length) lista.innerHTML = vazio('Nenhum repertório ainda. Crie o primeiro e aplique numa data da escala.');
+      }
+    });
+  }
 
   document.querySelector('#novo').addEventListener('submit', async (e) => {
     e.preventDefault();

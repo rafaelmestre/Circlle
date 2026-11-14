@@ -1851,3 +1851,124 @@ details.card[open] > summary { margin-bottom: var(--space-3); }
 .cifra__parte { color: var(--text-muted); font-weight: 700; }
 .cifra-campo { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.875rem; line-height: 1.5; white-space: pre; }
 code { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 0.9em; }
+
+/* ==========================================================
+   v9 — Lista do repertório estilo playlist
+   ========================================================== */
+.dica-lista { font-size: 0.75rem; margin: calc(var(--space-2) * -1) 0 var(--space-3); }
+.arrastavel {
+  position: relative;
+  border-radius: 16px;
+  overflow: hidden;
+  touch-action: pan-y;
+}
+.arrastavel__apagar {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 2px;
+  padding-right: 22px;
+  border: 0;
+  border-radius: inherit;
+  background: var(--status-declined);
+  opacity: 0;
+  color: #fff;
+  font: inherit;
+  font-size: 0.75rem;
+  font-weight: var(--font-weight-semibold);
+  cursor: pointer;
+}
+.arrastavel__apagar:focus-visible { outline: 2px solid #fff; outline-offset: -4px; }
+.arrastavel__apagar > * { width: 44px; text-align: center; }
+.arrastavel--deslizando .arrastavel__apagar,
+.arrastavel--aberto .arrastavel__apagar,
+.arrastavel__apagar:focus-visible { opacity: 1; }
+.musicas--editar .arrastavel__frente {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-2) var(--space-2) 0;
+  border-radius: 0;
+  background: var(--surface);
+  will-change: transform;
+}
+.arrastavel__alca {
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 48px;
+  border: 0;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: grab;
+  touch-action: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+.arrastavel__alca:active { cursor: grabbing; }
+.arrastavel__frente .musica__texto {
+  color: inherit;
+  text-decoration: none;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+  padding: var(--space-1) 0;
+}
+.arrastavel__frente .musica__texto strong { white-space: normal; }
+.arrastavel--movendo {
+  z-index: 5;
+  box-shadow: var(--shadow-float);
+  transition: box-shadow 150ms ease;
+}
+.arrastavel--movendo .arrastavel__frente { background: var(--surface); }
+.arrastavel--movendo .arrastavel__alca { color: var(--accent-text); }
+.arrastavel--saindo {
+  transition: height 200ms ease, opacity 200ms ease, margin 200ms ease;
+  opacity: 0;
+  margin-bottom: calc(var(--space-2) * -1);
+}
+
+/* Tom: − G + */
+.tom-passo {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  border-radius: 12px;
+  background: var(--accent-tint);
+}
+.tom-passo__botao {
+  width: 32px;
+  height: 36px;
+  border: 0;
+  background: transparent;
+  color: var(--accent-text);
+  font: inherit;
+  font-size: 1.15rem;
+  font-weight: var(--font-weight-semibold);
+  cursor: pointer;
+}
+.tom-passo__botao:active { transform: scale(0.88); }
+.tom-passo input {
+  width: 40px;
+  min-height: 36px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  text-align: center;
+  font-weight: var(--font-weight-semibold);
+  color: var(--accent-text);
+}
+.tom-passo input:focus { outline: 2px solid var(--accent-text); outline-offset: -2px; border-radius: 8px; }
+.tom-passo input.salvo { animation: tom-salvo 600ms ease; }
+@keyframes tom-salvo { 0% { transform: scale(1.18); } 100% { transform: scale(1); } }
+@media (prefers-reduced-motion: reduce) {
+  .arrastavel *, .arrastavel { transition-duration: 1ms !important; animation: none !important; }
+}
+.icone-alca { vertical-align: -2px; }
+.arrastavel--lista { border-radius: var(--radius-md); }
+.arrastavel > .lista__item.arrastavel__frente { position: relative; border-radius: 0; will-change: transform; -webkit-touch-callout: none; user-select: none; -webkit-user-select: none; }

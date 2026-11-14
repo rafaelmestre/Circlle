@@ -2,6 +2,11 @@ import { supabase } from '../lib/supabase.js';
 import { notificar } from '../lib/notificacoes.js';
 import { escapar, casca, icone, botaoVoltar, vazio, aviso, traduzirErro, comBotao, formatarData, linkWhats } from '../lib/ui.js';
 import { itensOrdenados, textoRepertorio, linkMusica } from '../lib/repertorio.js';
+import { listaArrastavel } from '../lib/listaArrastavel.js';
+import { lerTom, tomTransposto } from '../lib/tom.js';
+
+// Alça de arrastar (seis pontinhos)
+const ALCA = (t) => `<svg viewBox="0 0 24 24" width="${t}" height="${t}" aria-hidden="true" fill="currentColor" class="icone-alca"><circle cx="9" cy="6" r="1.6"/><circle cx="15" cy="6" r="1.6"/><circle cx="9" cy="12" r="1.6"/><circle cx="15" cy="12" r="1.6"/><circle cx="9" cy="18" r="1.6"/><circle cx="15" cy="18" r="1.6"/></svg>`;
 
 const sem = (t) => String(t ?? '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
 
@@ -35,30 +40,32 @@ export async function telaRepertorio(ctx, repId, rolagem = 0) {
       <div class="titulo">
         <p class="passo">${escapar(dep.nome)}</p>
         <h1>${escapar(rep.nome)}</h1>
-        <p>${itens.length} ${itens.length === 1 ? 'música' : 'músicas'}</p>
+        <p id="qtdMusicas">${itens.length} ${itens.length === 1 ? 'música' : 'músicas'}</p>
       </div>
 
       <section class="secao">
         <h2>Músicas</h2>
-        <ol class="musicas musicas--editar">
+        ${itens.length > 1 ? `<p class="texto-fraco dica-lista">Segure ${ALCA(14)} e arraste para mudar a ordem. Deslize para a esquerda para tirar.</p>` : ''}
+        <ol class="musicas musicas--editar" id="listaMusicas">
           ${itens.map((i, n) => `
-            <li class="musica" data-item="${i.id}">
-              <span class="musica__num" aria-hidden="true">${n + 1}</span>
-              <span class="musica__texto">
-                <strong>${escapar(i.musicas.titulo)}</strong>
-                <small>${escapar(i.musicas.artista ?? '')}</small>
-              </span>
-              <label class="musica__tom-campo">
-                <span class="so-leitor">Tom de ${escapar(i.musicas.titulo)}</span>
-                <input data-tom value="${escapar(i.tomFinal)}" maxlength="8" placeholder="Tom" />
-              </label>
-              <span class="musica__acoes">
-                <button type="button" class="icone-botao icone-botao--mini" data-mover="-1" ${n === 0 ? 'disabled' : ''} aria-label="Subir ${escapar(i.musicas.titulo)}">↑</button>
-                <button type="button" class="icone-botao icone-botao--mini" data-mover="1" ${n === itens.length - 1 ? 'disabled' : ''} aria-label="Descer ${escapar(i.musicas.titulo)}">↓</button>
-                <a class="icone-botao icone-botao--mini" href="${linkMusica(i)}"
-                   aria-label="Cifra de ${escapar(i.musicas.titulo)}">${icone.seta(16)}</a>
-                <button type="button" class="icone-botao icone-botao--mini icone-botao--perigo" data-tirar aria-label="Tirar ${escapar(i.musicas.titulo)}">×</button>
-              </span>
+            <li class="arrastavel" data-item="${i.id}" data-musica="${i.musica_id}" data-tom-original="${escapar(i.musicas.tom ?? '')}">
+              <button type="button" class="arrastavel__apagar" data-apagar aria-label="Tirar ${escapar(i.musicas.titulo)} do repertório">
+                ${icone.lixo(20)}<span>Apagar</span>
+              </button>
+              <div class="musica arrastavel__frente" data-frente>
+                <button type="button" class="arrastavel__alca" data-alca aria-label="Mover ${escapar(i.musicas.titulo)} (setas para cima e para baixo)">
+                  ${ALCA(20)}
+                </button>
+                <a class="musica__texto" href="${linkMusica(i)}" draggable="false" data-link>
+                  <strong>${escapar(i.musicas.titulo)}</strong>
+                  <small><span data-num>${n + 1}</span>${i.musicas.artista ? ` · ${escapar(i.musicas.artista)}` : ''}</small>
+                </a>
+                <span class="tom-passo" role="group" aria-label="Tom de ${escapar(i.musicas.titulo)}">
+                  <button type="button" class="tom-passo__botao" data-passo="-1" aria-label="Meio tom abaixo">−</button>
+                  <input data-tom value="${escapar(i.tomFinal)}" maxlength="8" placeholder="Tom" aria-label="Tom" />
+                  <button type="button" class="tom-passo__botao" data-passo="1" aria-label="Meio tom acima">+</button>
+                </span>
+              </div>
             </li>`).join('') || `<li>${vazio('Busque abaixo ou cadastre a primeira música.')}</li>`}
         </ol>
       </section>
@@ -120,7 +127,7 @@ export async function telaRepertorio(ctx, repId, rolagem = 0) {
       <section class="secao">
         <h2>Mais</h2>
         ${itens.length ? `
-          <a class="btn btn-ghost" target="_blank" rel="noopener"
+          <a class="btn btn-ghost" id="whats" target="_blank" rel="noopener"
              href="${linkWhats(textoRepertorio(rep.nome, itens))}">${icone.whats()} Mandar no WhatsApp</a>` : ''}
         <form class="card form" id="renomear" novalidate>
           <div class="field">
@@ -137,39 +144,80 @@ export async function telaRepertorio(ctx, repId, rolagem = 0) {
   if (rolagem) window.scrollTo(0, rolagem);
 
   // ---------- Músicas da lista ----------
-  const renumerar = async (ordem) => {
-    const r = await Promise.all(ordem.map((id, n) => supabase.from('repertorio_itens').update({ ordem: n + 1 }).eq('id', id)));
-    return r.find((x) => x.error) ?? { error: null };
+  const lista = document.querySelector('#listaMusicas');
+  // Mantém o texto do WhatsApp igual à lista na tela
+  const atualizarWhats = () => {
+    const botao = document.querySelector('#whats');
+    if (!botao) return;
+    const atuais = [...lista.querySelectorAll('[data-item]')].map((li) => ({
+      ...itens.find((i) => i.id === li.dataset.item),
+      tomFinal: li.querySelector('[data-tom]').value.trim()
+    }));
+    botao.hidden = !atuais.length;
+    botao.href = linkWhats(textoRepertorio(rep.nome, atuais));
   };
-
-  document.querySelectorAll('[data-item]').forEach((linha) => {
-    const id = linha.dataset.item;
-    linha.querySelectorAll('[data-mover]').forEach((b) =>
-      b.addEventListener('click', async () => {
-        const ordem = itens.map((i) => i.id);
-        const de = ordem.indexOf(id);
-        const para = de + Number(b.dataset.mover);
-        [ordem[de], ordem[para]] = [ordem[para], ordem[de]];
-        const { error } = await comBotao(b, () => renumerar(ordem));
-        if (error) return aviso(traduzirErro(error));
-        recarregar();
-      }));
-    linha.querySelector('[data-tirar]').addEventListener('click', async (e) => {
-      const { error } = await comBotao(e.currentTarget, () => supabase.from('repertorio_itens').delete().eq('id', id));
-      if (error) return aviso(traduzirErro(error));
+  const salvarOrdem = async (ordem) => {
+    lista.querySelectorAll('[data-num]').forEach((el, n) => { el.textContent = n + 1; });
+    atualizarWhats();
+    const qtd = ordem.length;
+    document.querySelector('#qtdMusicas').textContent = `${qtd} ${qtd === 1 ? 'música' : 'músicas'}`;
+    if (!qtd) lista.innerHTML = `<li>${vazio('Busque abaixo ou cadastre a primeira música.')}</li>`;
+    const r = await Promise.all(ordem.map((id, n) => supabase.from('repertorio_itens').update({ ordem: n + 1 }).eq('id', id)));
+    const erro = r.find((x) => x.error)?.error;
+    if (erro) {
+      aviso(traduzirErro(erro));
       recarregar();
+    }
+  };
+  if (itens.length) {
+    listaArrastavel(lista, {
+      aoReordenar: (ordem) => salvarOrdem(ordem),
+      aoApagar: async (id) => {
+        const { error } = await supabase.from('repertorio_itens').delete().eq('id', id);
+        if (error) {
+          aviso(traduzirErro(error));
+          return false;
+        }
+        const linha = lista.querySelector(`[data-item="${id}"]`);
+        naLista.delete(linha?.dataset.musica);
+        return true;
+      }
     });
-    linha.querySelector('[data-tom]').addEventListener('change', async (e) => {
-      const tom = e.target.value.trim() || null;
-      const { error } = await supabase.from('repertorio_itens').update({ tom }).eq('id', id);
-      if (error) return aviso(traduzirErro(error));
-      aviso('Tom salvo.');
-    });
+  }
+
+  // Tom: − e + andam meio tom; também dá para digitar
+  lista.querySelectorAll('[data-item]').forEach((linha) => {
+    const id = linha.dataset.item;
+    const campo = linha.querySelector('[data-tom]');
+    const link = linha.querySelector('[data-link]');
+    let espera = 0;
+    const salvar = (tom) => {
+      link.href = `#/musica/${linha.dataset.musica}${tom ? `/${encodeURIComponent(tom)}` : ''}`;
+      atualizarWhats();
+      clearTimeout(espera);
+      espera = setTimeout(async () => {
+        const { error } = await supabase.from('repertorio_itens').update({ tom: tom || null }).eq('id', id);
+        if (error) return aviso(traduzirErro(error));
+        campo.classList.remove('salvo');
+        void campo.offsetWidth;
+        campo.classList.add('salvo');
+      }, 600);
+    };
+    linha.querySelectorAll('[data-passo]').forEach((b) => b.addEventListener('click', () => {
+      const atual = campo.value.trim() || linha.dataset.tomOriginal;
+      if (!lerTom(atual)) {
+        aviso('Escreva o tom primeiro, por exemplo G ou Am.');
+        return campo.focus();
+      }
+      campo.value = tomTransposto(atual, Number(b.dataset.passo));
+      salvar(campo.value);
+    }));
+    campo.addEventListener('change', () => salvar(campo.value.trim()));
   });
 
   const adicionar = async (musicaId, botao) => {
     const { error } = await comBotao(botao, () => supabase.from('repertorio_itens')
-      .insert({ repertorio_id: rep.id, musica_id: musicaId, ordem: itens.length + 1 }));
+      .insert({ repertorio_id: rep.id, musica_id: musicaId, ordem: lista.querySelectorAll('[data-item]').length + 1 }));
     if (error) return aviso(traduzirErro(error));
     recarregar();
   };

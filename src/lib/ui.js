@@ -106,6 +106,7 @@ export const icone = {
   perfil: (t) => svg('<circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0116 0"/>', t),
   voltar: (t = 20) => svg('<path d="M15 18l-6-6 6-6"/>', t),
   mais: (t = 18) => svg('<path d="M12 5v14M5 12h14"/>', t),
+  lixo: (t = 18) => svg('<path d="M4 7h16M10 11v6M14 11v6M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12M9 7V4h6v3"/>', t),
   check: (t = 18) => svg('<path d="M5 12l5 5 9-10"/>', t),
   chave: (t = 22) => svg('<circle cx="8" cy="15" r="4"/><path d="M11 12l9-9M17 6l3 3"/>', t),
   predio: (t = 22) => svg('<path d="M4 21V5a2 2 0 012-2h8a2 2 0 012 2v16M16 9h2a2 2 0 012 2v10M8 7h4M8 11h4M8 15h4M3 21h18"/>', t),
