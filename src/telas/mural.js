@@ -1,6 +1,6 @@
 import { supabase } from '../lib/supabase.js';
 import { notificar } from '../lib/notificacoes.js';
-import { escapar, casca, botaoVoltar, vazio, aviso, traduzirErro, comBotao, primeiroNome } from '../lib/ui.js';
+import { escapar, casca, botaoVoltar, vazio, aviso, traduzirErro, comBotao, nomeCurto } from '../lib/ui.js';
 
 const fmtQuando = new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' });
 const quando = (iso) => fmtQuando.format(new Date(iso)).replace(/\./g, '').replace(' de ', ' ');
@@ -15,7 +15,7 @@ export const cartaoAviso = (a, acoes = '') => `
     ${a.fixado ? '<span class="aviso-mural__fixo">Fixado</span>' : ''}
     <h3 class="aviso-mural__titulo">${escapar(a.titulo)}</h3>
     ${a.corpo ? `<p class="aviso-mural__corpo">${escapar(a.corpo)}</p>` : ''}
-    <small class="aviso-mural__meta">${escapar(primeiroNome(a.perfis?.nome ?? ''))} · ${escapar(quando(a.created_at))}</small>
+    <small class="aviso-mural__meta">${escapar(nomeCurto(a.perfis))} · ${escapar(quando(a.created_at))}</small>
     ${acoes}
   </article>`;
 
@@ -31,7 +31,7 @@ export async function telaMural(ctx, depId) {
   const coordena = ctx.coordena(depId, dep.organizacao_id);
 
   const { data, error } = await supabase.from('avisos')
-    .select('id, titulo, corpo, fixado, autor, created_at, perfis(nome)')
+    .select('id, titulo, corpo, fixado, autor, created_at, perfis(nome, apelido, avatar_url)')
     .eq('departamento_id', depId)
     .order('fixado', { ascending: false }).order('created_at', { ascending: false }).limit(50);
   if (error) aviso(traduzirErro(error));

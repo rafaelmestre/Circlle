@@ -1,7 +1,7 @@
 import { supabase } from '../lib/supabase.js';
 import { notificar } from '../lib/notificacoes.js';
 import {
-  escapar, iniciais, formatarData, casca, icone, botaoVoltar, vazio, aviso, traduzirErro, comBotao,
+  escapar, avatar, formatarData, casca, icone, botaoVoltar, vazio, aviso, traduzirErro, comBotao,
   nomesFuncoes, badgeResposta, STATUS_EVENTO, linkWhats, textoEscala
 } from '../lib/ui.js';
 import { blocoRepertorio } from '../lib/repertorio.js';
@@ -54,7 +54,7 @@ function equipePorFuncao(escalas, euId) {
       <div class="lista">
         ${pessoas.map((s) => `
           <div class="lista__item ${s.usuario_id === euId ? 'lista__item--eu' : ''}">
-            <span class="avatar" aria-hidden="true">${escapar(iniciais(s.perfis?.nome))}</span>
+            ${avatar(s.perfis)}
             <span class="lista__texto">
               <strong>${escapar(s.perfis?.nome ?? '')}${s.usuario_id === euId ? ' (você)' : ''}</strong>
             </span>
@@ -77,7 +77,7 @@ const botaoWhats = (ev, dep, escalas) => `
 async function verEscala(ctx, ev, dep) {
   const [escRes, dispRes] = await Promise.all([
     supabase.from('escalas')
-      .select('id, usuario_id, resposta, motivo, perfis(nome), escala_funcoes(funcoes(nome))')
+      .select('id, usuario_id, resposta, motivo, perfis(nome, apelido, avatar_url), escala_funcoes(funcoes(nome))')
       .eq('evento_id', ev.id),
     supabase.from('disponibilidades').select('evento_id')
       .eq('evento_id', ev.id).eq('usuario_id', ctx.usuario.id)
@@ -195,7 +195,7 @@ async function verEscala(ctx, ev, dep) {
 // ==========================================================
 async function montarEscala(ctx, ev, dep) {
   const [membrosRes, mfRes, funcoesRes, dispRes, escRes] = await Promise.all([
-    supabase.from('membros_departamento').select('usuario_id, perfis(nome)')
+    supabase.from('membros_departamento').select('usuario_id, perfis(nome, apelido, avatar_url)')
       .eq('departamento_id', dep.id).eq('status', 'ativo'),
     supabase.from('membro_funcoes').select('usuario_id, funcao_id').eq('departamento_id', dep.id),
     supabase.from('funcoes').select('id, nome').eq('departamento_id', dep.id).order('nome'),
@@ -214,6 +214,7 @@ async function montarEscala(ctx, ev, dep) {
     .map((m) => ({
       id: m.usuario_id,
       nome: m.perfis?.nome ?? 'Sem nome',
+      avatar_url: m.perfis?.avatar_url ?? null,
       disponivel: disponiveis.has(m.usuario_id),
       funcoes: (funcoesDe[m.usuario_id] ?? []).filter((id) => nomeFuncao[id])
         .sort((a, b) => nomeFuncao[a].localeCompare(nomeFuncao[b]))
@@ -246,7 +247,7 @@ async function montarEscala(ctx, ev, dep) {
   const passo1 = () => {
     const cartao = (p) => `
       <button type="button" class="pessoa-opcao" data-pessoa="${p.id}" aria-pressed="${escolha.has(p.id)}">
-        <span class="avatar" aria-hidden="true">${escapar(iniciais(p.nome))}</span>
+        ${avatar(p)}
         <span class="lista__texto">
           <strong>${escapar(p.nome)}</strong>
           <small>${escapar(nomesDe(p.funcoes) || 'Sem função marcada')}</small>
@@ -292,7 +293,7 @@ async function montarEscala(ctx, ev, dep) {
       ${[...escolha.keys()].map((uid) => pessoa[uid]).filter(Boolean).sort((a, b) => a.nome.localeCompare(b.nome)).map((p) => `
         <div class="card funcoes-pessoa" data-pessoa="${p.id}">
           <div class="pessoa">
-            <span class="avatar" aria-hidden="true">${escapar(iniciais(p.nome))}</span>
+            ${avatar(p)}
             <strong class="pessoa__nome">${escapar(p.nome)}</strong>
             ${escolha.get(p.id).size ? '' : '<span class="badge badge--pending">Escolha a função</span>'}
           </div>
@@ -321,7 +322,7 @@ async function montarEscala(ctx, ev, dep) {
       const e = existentes.get(uid);
       return `
         <div class="lista__item">
-          <span class="avatar" aria-hidden="true">${escapar(iniciais(pessoa[uid].nome))}</span>
+          ${avatar(pessoa[uid])}
           <span class="lista__texto"><strong>${escapar(pessoa[uid].nome)}</strong></span>
           ${jaEnviada && e ? badgeResposta(e.resposta) : ''}
         </div>`;

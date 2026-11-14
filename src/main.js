@@ -1,9 +1,11 @@
 import './styles/tokens.css';
 import './styles/main.css';
 import { supabase } from './lib/supabase.js';
-import { app, carregando, traduzirErro } from './lib/ui.js';
+import { app, carregando, traduzirErro, aviso } from './lib/ui.js';
 import { carregarContexto } from './lib/contexto.js';
-import { telaEntrada } from './telas/entrada.js';
+import { telaEntrada, telaNovaSenha } from './telas/entrada.js';
+import { telaCompletarPerfil } from './telas/completarPerfil.js';
+import { perfilCompleto } from './lib/formPerfil.js';
 import { telaBoasVindas } from './telas/boasVindas.js';
 import { telaSolicitar, telaEmAnalise } from './telas/solicitar.js';
 import { telaEntrarCodigo } from './telas/entrarCodigo.js';
@@ -30,6 +32,8 @@ iniciarAtualizacao();
 
 let usuario = null;
 let ctx = null;
+// Chegou pelo link de "esqueci minha senha": a tela de senha nova vem antes de tudo
+let recuperandoSenha = /type=recovery/.test(location.hash);
 
 // Recarrega o que sabemos da pessoa e redesenha a tela atual
 async function atualizar() {
@@ -67,10 +71,13 @@ function rotear() {
   // Termos: abrem com ou sem login
   if (rota === 'termos') return telaTermos({ voltar: usuario ? '#/perfil' : '#/' });
   if (!usuario) return telaEntrada();
+  if (recuperandoSenha) return mostrarNovaSenha();
   if (!ctx) return;
 
   // LGPD: quem ainda não aceitou esta versão dos termos aceita antes de usar
   if (ctx.perfil.termos_versao !== TERMOS_VERSAO) return telaAceiteTermos(ctx, () => irPara('#/'));
+  // Cadastro completo: apelido, WhatsApp e nascimento (Google e contas antigas completam aqui)
+  if (!perfilCompleto(ctx.perfil)) return telaCompletarPerfil(ctx, () => irPara('#/'));
 
   // Telas que funcionam com ou sem vínculo
   if (rota === 'entrar') return telaEntrarCodigo(ctx, () => irPara('#/'));
@@ -113,6 +120,14 @@ function rotear() {
   }
 }
 
+function mostrarNovaSenha() {
+  telaNovaSenha(() => {
+    recuperandoSenha = false;
+    aviso('Senha nova salva!');
+    irPara('#/');
+  });
+}
+
 // Muda de rota sempre recarregando o contexto (ex.: depois de entrar num departamento)
 function irPara(hash) {
   if (location.hash === hash) atualizar();
@@ -143,6 +158,11 @@ supabase.auth.onAuthStateChange((evento, sessao) => {
   // setTimeout evita chamar o Supabase dentro do próprio callback de auth
   setTimeout(() => {
     const novoUsuario = sessao?.user ?? null;
+    if (evento === 'PASSWORD_RECOVERY' && novoUsuario) {
+      recuperandoSenha = true;
+      usuario = novoUsuario;
+      return mostrarNovaSenha();
+    }
     if (!novoUsuario) {
       usuario = null;
       ctx = null;

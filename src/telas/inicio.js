@@ -2,7 +2,7 @@ import { supabase } from '../lib/supabase.js';
 import { estadoNotificacoes, ativarNotificacoes } from '../lib/notificacoes.js';
 import { cartaoAviso, podePublicar } from './mural.js';
 import {
-  escapar, primeiroNome, formatarData, casca, icone, vazio, aviso, traduzirErro, comBotao, nomesFuncoes
+  escapar, nomeCurto, formatarData, casca, icone, vazio, aviso, traduzirErro, comBotao, nomesFuncoes
 } from '../lib/ui.js';
 
 const CHAVE_DEP = 'circlle:inicio-dep';
@@ -96,7 +96,7 @@ export async function telaInicio(ctx) {
           <img src="/favicon.svg" alt="Circlle" class="topo__logo" />
           <div>
             <small>Olá,</small>
-            <h1>${escapar(primeiroNome(ctx.perfil.nome))}</h1>
+            <h1>${escapar(nomeCurto(ctx.perfil))}</h1>
           </div>
         </div>
       </header>
@@ -150,7 +150,7 @@ export async function telaInicio(ctx) {
     caixa.innerHTML = '<p class="texto-fraco">Carregando…</p>';
     const fim = new Date(mesVisto.getFullYear(), mesVisto.getMonth() + 1, 1);
     const { data, error } = await supabase.from('eventos')
-      .select('id, titulo, inicio, status, escalas(usuario_id, perfis(nome), escala_funcoes(funcoes(id, nome)))')
+      .select('id, titulo, inicio, status, escalas(usuario_id, perfis(nome, apelido, avatar_url), escala_funcoes(funcoes(id, nome)))')
       .eq('departamento_id', depId).in('status', ['previa', 'publicado', 'realizado'])
       .gte('inicio', mesVisto.toISOString()).lt('inicio', fim.toISOString()).order('inicio');
     if (error) {
@@ -167,7 +167,7 @@ export async function telaInicio(ctx) {
     if (!caixaMural) return;
     const alvo = depId;
     const { data } = await supabase.from('avisos')
-      .select('id, titulo, corpo, fixado, created_at, perfis(nome)').eq('departamento_id', alvo)
+      .select('id, titulo, corpo, fixado, created_at, perfis(nome, apelido, avatar_url)').eq('departamento_id', alvo)
       .order('fixado', { ascending: false }).order('created_at', { ascending: false }).limit(2);
     if (alvo !== depId) return;
     const publica = podePublicar(ctx, alvo);
@@ -244,7 +244,7 @@ function tabelaDoMes(eventos, eu, mes) {
     const porFuncao = new Map(colunas.map(([id]) => [id, []]));
     for (const s of e.escalas ?? []) {
       for (const f of s.escala_funcoes ?? []) {
-        porFuncao.get(f.funcoes?.id)?.push({ nome: primeiroNome(s.perfis?.nome ?? ''), eu: s.usuario_id === eu });
+        porFuncao.get(f.funcoes?.id)?.push({ nome: nomeCurto(s.perfis), eu: s.usuario_id === eu });
       }
     }
     const minha = (e.escalas ?? []).some((s) => s.usuario_id === eu);

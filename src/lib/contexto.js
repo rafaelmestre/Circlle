@@ -2,8 +2,9 @@ import { supabase } from './supabase.js';
 
 // Tudo o que as telas precisam saber sobre quem está logado
 export async function carregarContexto(usuario) {
-  const [perfil, plataforma, orgs, solicitacoes, vinculos] = await Promise.all([
-    supabase.from('perfis').select('id, nome, telefone, termos_versao').eq('id', usuario.id).maybeSingle(),
+  const [perfil, nascimento, plataforma, orgs, solicitacoes, vinculos] = await Promise.all([
+    supabase.from('perfis').select('id, nome, apelido, telefone, avatar_url, termos_versao').eq('id', usuario.id).maybeSingle(),
+    supabase.rpc('meu_nascimento'),
     supabase.from('admins_plataforma').select('usuario_id').eq('usuario_id', usuario.id).maybeSingle(),
     supabase.from('membros_organizacao')
       .select('papel, organizacoes(id, nome, status, termo_organizacao, termo_departamento, termo_evento, termo_funcao)')
@@ -21,7 +22,7 @@ export async function carregarContexto(usuario) {
       .order('created_at')
   ]);
 
-  const erro = perfil.error ?? plataforma.error ?? orgs.error ?? solicitacoes.error ?? vinculos.error;
+  const erro = perfil.error ?? nascimento.error ?? plataforma.error ?? orgs.error ?? solicitacoes.error ?? vinculos.error;
   if (erro) throw erro;
 
   const orgsAdmin = (orgs.data ?? [])
@@ -58,7 +59,7 @@ export async function carregarContexto(usuario) {
 
   return {
     usuario,
-    perfil: perfil.data ?? { id: usuario.id, nome: usuario.email },
+    perfil: { ...(perfil.data ?? { id: usuario.id, nome: usuario.email }), nascimento: nascimento.data ?? null },
     plataforma: Boolean(plataforma.data),
     orgsAdmin,
     solicitacoes: solicitacoes.data ?? [],

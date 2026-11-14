@@ -1,7 +1,7 @@
 // Termos de uso e política de privacidade do Circlle (LGPD)
 // Ao mudar o texto de forma relevante, troque a VERSÃO: todo mundo aceita de novo no próximo acesso.
 
-export const TERMOS_VERSAO = '2026-11-14';
+export const TERMOS_VERSAO = '2026-11-14b';
 export const TERMOS_DATA = '14 de novembro de 2026';
 
 // Canal para pedidos sobre dados pessoais (troque por um e-mail quando tiver um)
@@ -52,7 +52,8 @@ export const textoTermos = () => `
 
   <h3>6. Quais dados guardamos</h3>
   <ul>
-    <li><strong>Conta:</strong> nome, e-mail, senha (guardada de forma criptografada) e telefone, se você informar.</li>
+    <li><strong>Cadastro:</strong> nome, como quer ser chamado, e-mail, WhatsApp, data de nascimento, foto (opcional) e senha
+      (guardada de forma criptografada). Se você entrar com o Google, recebemos dele só o nome, o e-mail e a foto da conta.</li>
     <li><strong>Participação:</strong> departamentos, funções, datas em que você marcou que pode, escalas,
       respostas (confirmo ou pedido de ajuste, com o motivo que você escrever).</li>
     <li><strong>Conteúdo do grupo:</strong> avisos do mural, músicas, cifras e repertórios que você cadastrar.</li>
@@ -68,24 +69,26 @@ export const textoTermos = () => `
 
   <h3>8. Quem vê os seus dados</h3>
   <ul>
-    <li>Pessoas do mesmo grupo veem seu nome; a coordenação do departamento vê suas funções,
-      disponibilidade e respostas.</li>
+    <li>Pessoas do mesmo grupo veem seu nome, como quer ser chamado, WhatsApp e foto; a coordenação do
+      departamento vê também suas funções, disponibilidade e respostas.</li>
+    <li>A data de nascimento só você vê.</li>
     <li>A equipe do Circlle vê os dados das solicitações de novos grupos e o necessário para o suporte.
       Ela não acessa as escalas e os avisos dos grupos.</li>
-    <li>Serviços que fazem o app funcionar: <strong>Supabase</strong> (banco de dados e login),
+    <li>Serviços que fazem o app funcionar: <strong>Supabase</strong> (banco de dados, login e fotos),
+      <strong>Google</strong> (só se você escolher entrar com ele),
       <strong>Netlify</strong> (hospedagem) e o serviço de notificações do seu navegador (Google, Apple ou Mozilla),
       que recebe só o conteúdo do aviso. Esses servidores podem ficar fora do Brasil, com proteções
       adequadas (art. 33 da LGPD).</li>
   </ul>
 
   <h3>9. Por quanto tempo</h3>
-  <p>Enquanto sua conta existir. Ao excluir a conta, apagamos na hora seu perfil, suas participações,
+  <p>Enquanto sua conta existir. Ao excluir a conta, apagamos na hora seu perfil, sua foto, suas participações,
   disponibilidades, escalas, respostas e os aparelhos de notificação. Avisos, músicas e repertórios que
   você cadastrou continuam com o grupo, sem o seu nome.</p>
 
   <h3>10. Seus direitos</h3>
   <p>Você pode, a qualquer momento: confirmar que tratamos seus dados, ter acesso a eles, corrigir
-  (seu nome e telefone mudam pelo Perfil), pedir a portabilidade ou a exclusão, e retirar o consentimento
+  (seus dados de cadastro e a foto mudam pelo Perfil), pedir a portabilidade ou a exclusão, e retirar o consentimento
   das notificações (pelo Perfil ou no aparelho). Para os pedidos que não estão no app, fale com a gente pelo
   ${contato}. Você também pode procurar a Autoridade Nacional de Proteção de Dados (ANPD).</p>
 

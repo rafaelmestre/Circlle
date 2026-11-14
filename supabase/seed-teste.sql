@@ -197,6 +197,15 @@ insert into public.avisos (departamento_id, autor, titulo, corpo, fixado) values
 update public.eventos set repertorio_id = 'd2000000-0000-4000-8000-000000000001'
  where id = 'e0000000-0000-4000-8000-000000000001';
 
+-- Cadastro completo das personas (v10): apelido, WhatsApp e nascimento de mentira
+update public.perfis p
+set apelido    = split_part(p.nome, ' ', 1),
+    telefone   = '(11) 90000-' || lpad((row_number_ % 10000)::text, 4, '0'),
+    nascimento = date '1990-01-15' + (row_number_ * 97)::int
+from (select id, row_number() over (order by id) as row_number_ from public.perfis) n,
+     auth.users u
+where n.id = p.id and u.id = p.id and u.email like '%@circlle.test' and p.apelido is null;
+
 -- ───────────────────────────────────────────────────
 -- 6. Conferência
 -- ───────────────────────────────────────────────────

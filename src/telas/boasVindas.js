@@ -1,5 +1,5 @@
 import { supabase } from '../lib/supabase.js';
-import { app, escapar, primeiroNome, icone } from '../lib/ui.js';
+import { app, escapar, nomeCurto, icone } from '../lib/ui.js';
 
 // Sem vínculo nenhum: entrar com código ou solicitar o Circlle para o grupo
 export function telaBoasVindas(ctx) {
@@ -13,7 +13,7 @@ export function telaBoasVindas(ctx) {
       </header>
 
       <div class="titulo">
-        <h1>Bem-vindo, <span class="text-gradient">${escapar(primeiroNome(ctx.perfil.nome))}</span>!</h1>
+        <h1>Bem-vindo, <span class="text-gradient">${escapar(nomeCurto(ctx.perfil))}</span>!</h1>
         <p>Você ainda não participa de nenhum departamento.</p>
       </div>
 

@@ -62,6 +62,10 @@ Ferramentas de gestão costumam ser caras e feitas para grandes organizações. 
 - **Cifra própria** com **troca de tom** automática, abrindo já no tom do repertório
 - Atalho para a cifra no Cifra Club quando ainda não há cifra cadastrada
 
+**Conta**
+- **Entrar com o Google** ou com e-mail, e **esqueci minha senha**
+- **Cadastro completo**: como quer ser chamado (é o nome que aparece na escala), WhatsApp, nascimento e foto
+
 **Departamento**
 - Entrada por **código**, com aprovação do coordenador
 - **Funções de cada membro** registradas e editáveis no perfil
@@ -135,7 +139,7 @@ cp .env.example .env   # preencha com a URL e a chave publishable do Supabase
 npm run dev
 ```
 
-**Banco de dados:** crie um projeto no [Supabase](https://supabase.com) e rode [`supabase/schema.sql`](supabase/schema.sql) no **SQL Editor**. Para dados de teste, rode também [`supabase/seed-teste.sql`](supabase/seed-teste.sql). Quem já tem dados roda só as migrações que faltam, que não apagam nada: [`migracao-v3.sql`](supabase/migracao-v3.sql) (v2 → v3), [`migracao-v4.sql`](supabase/migracao-v4.sql) (v3 → v4), [`migracao-v5.sql`](supabase/migracao-v5.sql) (lembrete na véspera, depois de publicar a função), [`migracao-v6.sql`](supabase/migracao-v6.sql) (permissão de montar escalas), [`migracao-v7.sql`](supabase/migracao-v7.sql) (repertórios) [`migracao-v8.sql`](supabase/migracao-v8.sql) (mural e cifras) e [`migracao-v9.sql`](supabase/migracao-v9.sql) (termos e exclusão de conta).
+**Banco de dados:** crie um projeto no [Supabase](https://supabase.com) e rode [`supabase/schema.sql`](supabase/schema.sql) no **SQL Editor**. Para dados de teste, rode também [`supabase/seed-teste.sql`](supabase/seed-teste.sql). Quem já tem dados roda só as migrações que faltam, que não apagam nada: [`migracao-v3.sql`](supabase/migracao-v3.sql) (v2 → v3), [`migracao-v4.sql`](supabase/migracao-v4.sql) (v3 → v4), [`migracao-v5.sql`](supabase/migracao-v5.sql) (lembrete na véspera, depois de publicar a função), [`migracao-v6.sql`](supabase/migracao-v6.sql) (permissão de montar escalas), [`migracao-v7.sql`](supabase/migracao-v7.sql) (repertórios) [`migracao-v8.sql`](supabase/migracao-v8.sql) (mural e cifras) [`migracao-v9.sql`](supabase/migracao-v9.sql) (termos e exclusão de conta) e [`migracao-v10.sql`](supabase/migracao-v10.sql) (cadastro completo e fotos).
 
 **Notificações (opcional):** gere as chaves com `npx web-push generate-vapid-keys`, coloque a pública em `VITE_VAPID_PUBLIC_KEY` no `.env`, cadastre `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY` e `VAPID_SUBJECT` nos *secrets* das Edge Functions do Supabase e publique a função [`supabase/functions/notificar`](supabase/functions/notificar/index.ts) com *Verify JWT* desligado (ela confere o login sozinha). Sem isso, o app funciona normalmente, só sem os avisos.
 
@@ -165,7 +169,7 @@ Circlle/
 - [x] Protótipo navegável
 - [x] Projeto Vite + PWA, publicado no Netlify
 - [x] Banco com Row Level Security
-- [x] Documentação v9
+- [x] Documentação v10
 
 **Etapa 1: MVP**
 - [x] Solicitação e aprovação de organização
@@ -188,6 +192,7 @@ Circlle/
 - [x] Editor de repertório estilo playlist (arrastar, tom com − / +, deslizar para apagar)
 - [x] App instalado se atualiza sozinho
 - [x] LGPD: termos de uso, privacidade, aceite e exclusão de conta
+- [x] Cadastro completo com foto, entrar com o Google e esqueci a senha
 
 **Etapa 3**
 - [ ] Desempenho e relatórios

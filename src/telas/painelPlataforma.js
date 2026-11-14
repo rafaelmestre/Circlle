@@ -1,5 +1,5 @@
 import { supabase } from '../lib/supabase.js';
-import { escapar, primeiroNome, casca } from '../lib/ui.js';
+import { escapar, nomeCurto, casca } from '../lib/ui.js';
 
 const numero = new Intl.NumberFormat('pt-BR');
 const diaMesCurto = (iso) => new Date(iso).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', timeZone: 'UTC' });
@@ -107,7 +107,7 @@ export async function telaDashboard(ctx) {
   casca(ctx, 'inicio', `
     <main class="tela tela--com-nav">
       <div class="titulo titulo--topo">
-        <p class="passo">Olá, ${escapar(primeiroNome(ctx.perfil.nome))}</p>
+        <p class="passo">Olá, ${escapar(nomeCurto(ctx.perfil))}</p>
         <h1>Dashboard</h1>
       </div>
       ${painel}

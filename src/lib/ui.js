@@ -10,6 +10,26 @@ export const iniciais = (nome) =>
 
 export const primeiroNome = (nome) => String(nome ?? '').trim().split(/\s+/)[0] ?? '';
 
+// Como a pessoa quer ser chamada: apelido ou, sem ele, o primeiro nome
+export const nomeCurto = (p) => (p?.apelido || primeiroNome(p?.nome)) ?? '';
+
+// Foto de perfil ou iniciais (p = { nome, avatar_url })
+export const conteudoAvatar = (p) => p?.avatar_url
+  ? `<img src="${escapar(p.avatar_url)}" alt="" loading="lazy" referrerpolicy="no-referrer" />`
+  : escapar(iniciais(p?.nome));
+export const avatar = (p, classe = '') =>
+  `<span class="avatar ${classe}" aria-hidden="true">${conteudoAvatar(p)}</span>`;
+
+// WhatsApp: (11) 99999-9999 enquanto digita
+export function mascaraTelefone(valor) {
+  const d = String(valor ?? '').replace(/\D/g, '').replace(/^55(?=\d{10,11}$)/, '').slice(0, 11);
+  if (d.length <= 2) return d ? `(${d}` : '';
+  if (d.length <= 6) return `(${d.slice(0, 2)}) ${d.slice(2)}`;
+  if (d.length <= 10) return `(${d.slice(0, 2)}) ${d.slice(2, 6)}-${d.slice(6)}`;
+  return `(${d.slice(0, 2)}) ${d.slice(2, 7)}-${d.slice(7)}`;
+}
+export const telefoneValido = (v) => /^\d{10,11}$/.test(String(v ?? '').replace(/\D/g, ''));
+
 // ---------- Datas ----------
 const fmtDia = new Intl.DateTimeFormat('pt-BR', { weekday: 'short', day: '2-digit', month: 'short' });
 const fmtHora = new Intl.DateTimeFormat('pt-BR', { hour: '2-digit', minute: '2-digit' });
@@ -41,6 +61,14 @@ const ERROS = {
   'Limite de departamentos do plano atingido': 'O limite de departamentos do plano foi atingido.',
   'Conte o motivo do ajuste': 'Conte o motivo do ajuste.',
   'Esta escala não está aberta para respostas': 'Esta escala não está mais aberta para respostas.',
+  'New password should be different': 'A senha nova precisa ser diferente da anterior.',
+  'For security purposes, you can only request this': 'Espere um minuto antes de pedir outro link.',
+  'rate limit': 'Muitas tentativas agora. Tente de novo em alguns minutos.',
+  'Unable to validate email address': 'Confira o e-mail digitado.',
+  'Auth session missing': 'O link expirou. Peça outro em “Esqueci minha senha”.',
+  'provider is not enabled': 'O login com Google ainda não está ligado.',
+  'The resource already exists': 'Isso já existe.',
+  'Payload too large': 'A foto é grande demais. Tente outra.',
   'duplicate key': 'Isso já existe.'
 };
 
@@ -240,7 +268,7 @@ export function casca(ctx, ativo, conteudo) {
   app.innerHTML = `
     <div class="casca">
       ${ativo === 'perfil' ? '' : `
-        <a class="casca__perfil avatar avatar--link" href="#/perfil" aria-label="Meu perfil">${escapar(iniciais(ctx.perfil.nome))}</a>`}
+        <a class="casca__perfil avatar avatar--link" href="#/perfil" aria-label="Meu perfil">${conteudoAvatar(ctx.perfil)}</a>`}
       ${conteudo}
       <nav class="nav" aria-label="Navegação principal" style="--itens:${itens.length}">
         ${itens.map((i) => `

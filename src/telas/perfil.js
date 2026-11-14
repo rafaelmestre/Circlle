@@ -1,5 +1,7 @@
 import { supabase } from '../lib/supabase.js';
-import { escapar, iniciais, casca, icone, vazio, aviso, traduzirErro, comBotao, botaoVoltar } from '../lib/ui.js';
+import { escapar, avatar, nomeCurto, casca, icone, vazio, aviso, traduzirErro, comBotao, botaoVoltar } from '../lib/ui.js';
+import { camposPerfil, ligarCamposPerfil, lerCamposPerfil } from '../lib/formPerfil.js';
+import { removerFoto } from '../lib/foto.js';
 import { estadoNotificacoes, ativarNotificacoes, desativarNotificacoes } from '../lib/notificacoes.js';
 
 // Perfil: nome, departamentos e o que faz em cada um (RF02, RF03, RF04)
@@ -22,20 +24,21 @@ export async function telaPerfil(ctx, recarregarContexto) {
     <main class="tela tela--com-nav">
       ${botaoVoltar('#/', 'Voltar')}
       <div class="perfil__cab">
-        <span class="avatar avatar--grande" aria-hidden="true">${escapar(iniciais(ctx.perfil.nome))}</span>
+        <span data-cab-avatar>${avatar(ctx.perfil, 'avatar--grande')}</span>
         <div>
-          <h1>${escapar(ctx.perfil.nome)}</h1>
+          <h1>${escapar(nomeCurto(ctx.perfil))}</h1>
+          ${ctx.perfil.apelido ? `<p class="texto-fraco">${escapar(ctx.perfil.nome)}</p>` : ''}
           <p class="texto-fraco">${escapar(ctx.usuario.email)}</p>
         </div>
       </div>
 
-      <form class="form card" id="dados" novalidate>
-        <div class="field">
-          <label for="nome">Seu nome</label>
-          <input id="nome" name="nome" required maxlength="80" autocomplete="name" value="${escapar(ctx.perfil.nome)}" />
-        </div>
-        <button class="btn btn-ghost" type="submit">Salvar nome</button>
-      </form>
+      <section class="secao">
+        <h2>Meus dados</h2>
+        <form class="form card" id="dados" novalidate>
+          ${camposPerfil(ctx.perfil, { foto: true })}
+          <button class="btn btn-ghost" type="submit">Salvar dados</button>
+        </form>
+      </section>
 
       <section class="secao">
         <h2>Meus grupos e o que eu faço</h2>
@@ -75,14 +78,15 @@ export async function telaPerfil(ctx, recarregarContexto) {
       </section>
     </main>`);
 
+  ligarCamposPerfil(document.querySelector('#dados'), { uid: ctx.usuario.id, perfil: ctx.perfil });
   document.querySelector('#dados').addEventListener('submit', async (e) => {
     e.preventDefault();
-    const nome = e.currentTarget.nome.value.trim();
-    if (!nome) return aviso('Informe seu nome.');
-    const { error } = await comBotao(e.currentTarget.querySelector('button'), () =>
-      supabase.from('perfis').update({ nome }).eq('id', ctx.usuario.id));
+    const { erro, dados } = lerCamposPerfil(e.currentTarget);
+    if (erro) return aviso(erro);
+    const { error } = await comBotao(e.currentTarget.querySelector('button[type="submit"]'), () =>
+      supabase.from('perfis').update(dados).eq('id', ctx.usuario.id));
     if (error) return aviso(traduzirErro(error));
-    aviso('Nome atualizado.');
+    aviso('Dados atualizados.');
     recarregarContexto();
   });
 
@@ -124,7 +128,12 @@ export async function telaPerfil(ctx, recarregarContexto) {
   document.querySelector('#excluir').addEventListener('click', async (e) => {
     if (!confirm('Excluir sua conta e todos os seus dados? Isso não pode ser desfeito.')) return;
     const { error } = await comBotao(e.currentTarget, async () => {
+      // Confere antes de mexer em qualquer coisa (ex.: único administrador)
+      const conferido = await supabase.rpc('conferir_exclusao_conta');
+      if (conferido.error) return conferido;
       await desativarNotificacoes().catch(() => {});
+      // A foto fica no Storage, que só a própria pessoa apaga
+      if (ctx.perfil.avatar_url) await removerFoto(ctx.usuario.id).catch(() => {});
       return supabase.rpc('excluir_minha_conta');
     });
     if (error) {

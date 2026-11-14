@@ -1,7 +1,9 @@
 # Circlle — Documentação do Projeto
 
-*Um produto Cappstone Studio · versão 9 (nov/2026)*
+*Um produto Cappstone Studio · versão 10 (nov/2026)*
 
+> **O que mudou na v10:** **cadastro completo** (nome, como quer ser chamado, WhatsApp e nascimento obrigatórios; foto opcional), editável no Perfil, com o **apelido na escala** e a **foto** nos avatares. **Entrar com o Google** e **esqueci minha senha**. Quem entra pelo Google ou já tinha conta completa o cadastro no próximo acesso. A revisão está na seção 20.
+>
 > **O que mudou na v9:** o editor do repertório virou uma **playlist de verdade**: **segurar e arrastar** para mudar a ordem, **− / +** para mudar o tom de cada música e **deslizar para a esquerda** para tirar (como no WhatsApp). O mesmo gesto **exclui repertórios** na lista, com confirmação. O app instalado agora **se atualiza sozinho**, sem limpar cache nem reinstalar. E entrou a parte de **LGPD**: página de **termos de uso e privacidade**, aceite no cadastro (e para quem já tinha conta), e a exclusão de conta não deixa mais um grupo sem administrador. A revisão está na seção 19.
 >
 > **O que mudou na v8:** **mural** do departamento (avisos com aviso no celular, fixar no topo, resumo no Início), **cifra própria** de cada música e **troca de tom** automática, com a tela da música abrindo já no tom do repertório. A revisão está na seção 18.
@@ -133,8 +135,9 @@ Todos os usuários de teste usam e-mails `@circlle.test` (ver `supabase/seed-tes
 
 ### 7.1 Conta e perfil
 
-- **RF01** Criar conta com nome, e-mail e senha; entrar e sair.
-- **RF02** Perfil do usuário com nome, foto (opcional) e a lista de **departamentos e funções** em cada um.
+- **RF01** Criar conta com nome completo, como quer ser chamado, WhatsApp, data de nascimento, e-mail e senha; ou **entrar com o Google** (o nome e a foto vêm da conta Google e o resto é completado no primeiro acesso). Entrar e sair.
+- **RF01.1** Esqueci minha senha: o link chega por e-mail e abre a tela de senha nova. A resposta é a mesma exista ou não a conta.
+- **RF02** Perfil do usuário com foto (opcional, recortada e reduzida no aparelho), nome, apelido, WhatsApp, nascimento e a lista de **departamentos e funções** em cada um. Tudo editável no Perfil. O apelido aparece na escala, no mural e na saudação.
 - **RF03** O membro edita as próprias funções no perfil; a alteração fica visível ao coordenador.
 - **RF04** Excluir a própria conta e todos os dados (LGPD).
 
@@ -230,6 +233,7 @@ Todos os usuários de teste usam e-mails `@circlle.test` (ver `supabase/seed-tes
 - **RN21** "Pode montar escalas" dá ao membro tudo o que o coordenador faz nas escalas daquele departamento (criar datas, montar, enviar prévia, publicar, editar e excluir datas), mas não aprova membros nem mexe em funções e ajustes. Só a coordenação liga ou desliga.
 - **RN22** A barra de baixo mostra só o que cada papel usa: membro (Início, Calendário); com repertório (+ Repertórios); quem monta escalas (+ Escalas); administrador do grupo (+ aba do grupo); dono da plataforma (Dashboard, Assinantes). O perfil abre pelo avatar, em qualquer tela.
 - **RN23** Tirar uma música do repertório não pede confirmação (ela continua no banco de músicas e volta com dois toques). Excluir um repertório pede confirmação e avisa quantas datas ficam sem repertório; as músicas continuam cadastradas.
+- **RN24** Apelido, WhatsApp e nascimento são obrigatórios; sem eles, o app pede para completar antes de seguir. A data de nascimento só a própria pessoa vê (permissão por coluna no banco); colegas veem nome, apelido, WhatsApp e foto.
 
 ---
 
@@ -274,7 +278,16 @@ O MVP está pronto quando, com os usuários de teste, for possível:
 
 ---
 
-## 12. Banco de dados (v9)
+## 12. Banco de dados (v10)
+
+**v10**
+
+- `perfis.apelido` e `perfis.nascimento`. A data de nascimento fica fora da leitura dos colegas (permissão por coluna) e a pessoa lê a sua pela função `meu_nascimento`.
+- O cadastro (e o login com Google) já grava apelido, WhatsApp, nascimento e foto no perfil.
+- Fotos no Storage, pasta `avatares/<id>/foto`, com leitura pública e escrita só da própria pessoa.
+- `conferir_exclusao_conta`: o app confere antes de apagar a foto e a conta.
+- Banco da v9: `supabase/migracao-v10.sql`, que não apaga dados.
+
 
 **v9**
 
@@ -342,6 +355,7 @@ O MVP está pronto quando, com os usuários de teste, for possível:
 | Mural, cifra própria e troca de tom | ✅ Pronto |
 | Atualização automática do app instalado | ✅ Pronto |
 | Termos de uso, privacidade e exclusão de conta (LGPD) | ✅ Pronto |
+| Cadastro completo, foto, Google e esqueci a senha | ✅ Pronto |
 | Sugestão automática e ensaios | ⏳ Etapa 2 |
 | Desempenho, relatórios e agenda | ⏳ Etapa 3 |
 
@@ -427,3 +441,16 @@ O MVP está pronto quando, com os usuários de teste, for possível:
 | ✅ Feito | Atualização do app (RNF07) | O app instalado se atualiza sozinho ao voltar para a tela |
 | ✅ Feito | LGPD (RNF04) | Página de termos e privacidade, aceite no cadastro e no próximo acesso, exclusão de conta sem deixar grupo sem administrador |
 | ⏭️ Fica | Sugestão automática e ensaios | Próximas etapas |
+
+---
+
+## 20. Revisão de requisitos (v10)
+
+| | Requisito | O que aconteceu |
+|---|---|---|
+| ✅ Feito | Cadastro completo (RF01, RN24) | Nome, apelido, WhatsApp (com máscara) e nascimento obrigatórios |
+| ✅ Feito | Foto no perfil (RF02) | Opcional; recortada e reduzida no aparelho; aparece nos avatares |
+| ✅ Feito | Editar no Perfil (RF02) | Todos os dados e a foto |
+| ✅ Feito | Entrar com o Google (RF01) | O botão aparece quando o Google está ligado no Supabase |
+| ✅ Feito | Esqueci minha senha (RF01.1) | Link por e-mail e tela de senha nova |
+| ⏭️ Fica | Aniversariantes do mês | A data já está guardada; a tela fica para depois |

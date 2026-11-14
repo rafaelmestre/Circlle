@@ -1,12 +1,12 @@
 import { supabase } from '../lib/supabase.js';
-import { escapar, iniciais, casca, botaoVoltar, aviso, traduzirErro, comBotao, termos } from '../lib/ui.js';
+import { escapar, avatar, casca, botaoVoltar, aviso, traduzirErro, comBotao, termos } from '../lib/ui.js';
 
 // Perfil do membro visto pela coordenação: funções e permissões (RF10, RF15, RF16, RN21)
 export async function telaMembro(ctx, depId, usuarioId, recarregarContexto) {
   const [depRes, membroRes, funcoesRes, minhasRes] = await Promise.all([
     supabase.from('departamentos')
       .select('id, nome, organizacao_id, modulo_repertorio, organizacoes(termo_funcao)').eq('id', depId).maybeSingle(),
-    supabase.from('membros_departamento').select('papel, status, perm_escala, perm_repertorio, perfis(nome)')
+    supabase.from('membros_departamento').select('papel, status, perm_escala, perm_repertorio, perfis(nome, apelido, avatar_url)')
       .eq('departamento_id', depId).eq('usuario_id', usuarioId).maybeSingle(),
     supabase.from('funcoes').select('id, nome').eq('departamento_id', depId).order('nome'),
     supabase.from('membro_funcoes').select('funcao_id').eq('departamento_id', depId).eq('usuario_id', usuarioId)
@@ -37,7 +37,7 @@ export async function telaMembro(ctx, depId, usuarioId, recarregarContexto) {
     <main class="tela tela--com-nav">
       ${botaoVoltar(`#/dep/${dep.id}`, 'Equipe')}
       <div class="perfil__cab">
-        <span class="avatar avatar--grande" aria-hidden="true">${escapar(iniciais(nome))}</span>
+        ${avatar(m.perfis, 'avatar--grande')}
         <div>
           <h1>${escapar(nome)}${eu ? ' (você)' : ''}</h1>
           <p class="texto-fraco">${escapar(dep.nome)}${coord ? ' · Coordenação' : ''}</p>

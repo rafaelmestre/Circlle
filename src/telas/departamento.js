@@ -1,13 +1,13 @@
 import { supabase } from '../lib/supabase.js';
 import { notificar } from '../lib/notificacoes.js';
-import { escapar, iniciais, casca, icone, botaoVoltar, vazio, aviso, traduzirErro, comBotao, termos } from '../lib/ui.js';
+import { escapar, avatar, casca, icone, botaoVoltar, vazio, aviso, traduzirErro, comBotao, termos } from '../lib/ui.js';
 
 
 // Equipe do departamento: código, pedidos, membros e ajustes (RF11, RF12, RF14–RF16)
 export async function telaDepartamento(ctx, depId, recarregarContexto) {
   const [depRes, membrosRes, funcoesRes, mfRes] = await Promise.all([
     supabase.from('departamentos').select('id, nome, codigo, ativo, modulo_repertorio, organizacao_id, organizacoes(nome, termo_departamento, termo_evento, termo_funcao)').eq('id', depId).maybeSingle(),
-    supabase.from('membros_departamento').select('usuario_id, papel, perm_repertorio, perm_escala, status, perfis(nome)').eq('departamento_id', depId).order('created_at'),
+    supabase.from('membros_departamento').select('usuario_id, papel, perm_repertorio, perm_escala, status, perfis(nome, apelido, avatar_url)').eq('departamento_id', depId).order('created_at'),
     supabase.from('funcoes').select('id, nome').eq('departamento_id', depId).order('nome'),
     supabase.from('membro_funcoes').select('usuario_id, funcao_id').eq('departamento_id', depId)
   ]);
@@ -60,7 +60,7 @@ export async function telaDepartamento(ctx, depId, recarregarContexto) {
           ${pendentes.map((m) => `
             <div class="card pedido" data-usuario="${m.usuario_id}">
               <div class="pessoa">
-                <span class="avatar" aria-hidden="true">${escapar(iniciais(m.perfis?.nome))}</span>
+                ${avatar(m.perfis)}
                 <strong class="pessoa__nome">${escapar(m.perfis?.nome ?? 'Sem nome')}</strong>
               </div>
               <div class="chips" role="group" aria-label="Funções">
@@ -88,7 +88,7 @@ export async function telaDepartamento(ctx, depId, recarregarContexto) {
             ].join('');
             return `
               <a class="lista__item lista__item--link" href="#/dep/${dep.id}/membro/${m.usuario_id}">
-                <span class="avatar" aria-hidden="true">${escapar(iniciais(m.perfis?.nome))}</span>
+                ${avatar(m.perfis)}
                 <span class="lista__texto">
                   <strong>${escapar(m.perfis?.nome ?? 'Sem nome')}${m.usuario_id === ctx.usuario.id ? ' (você)' : ''}</strong>
                   <small>${escapar(nomes || 'Sem função marcada')}</small>
