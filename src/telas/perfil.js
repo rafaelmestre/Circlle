@@ -69,7 +69,9 @@ export async function telaPerfil(ctx, recarregarContexto) {
       <section class="secao">
         <h2>Conta</h2>
         <button class="btn btn-ghost" id="sair">Sair</button>
+        <a class="btn btn-ghost" href="#/termos">Termos de uso e privacidade</a>
         <button class="btn btn-ghost btn-perigo" id="excluir">Excluir minha conta</button>
+        <p class="texto-fraco dica-excluir">Excluir apaga na hora seu perfil, suas escalas, respostas e datas marcadas. Avisos e músicas que você cadastrou ficam com o grupo, sem o seu nome.</p>
       </section>
     </main>`);
 
@@ -121,8 +123,17 @@ export async function telaPerfil(ctx, recarregarContexto) {
   });
   document.querySelector('#excluir').addEventListener('click', async (e) => {
     if (!confirm('Excluir sua conta e todos os seus dados? Isso não pode ser desfeito.')) return;
-    const { error } = await comBotao(e.currentTarget, () => supabase.rpc('excluir_minha_conta'));
-    if (error) return aviso(traduzirErro(error));
+    const { error } = await comBotao(e.currentTarget, async () => {
+      await desativarNotificacoes().catch(() => {});
+      return supabase.rpc('excluir_minha_conta');
+    });
+    if (error) {
+      const org = /Único administrador: (.+)/.exec(error.message ?? '')?.[1];
+      return aviso(org
+        ? `Você é o único administrador de “${org}”. Fale com o Circlle para passar a administração e depois exclua a conta.`
+        : traduzirErro(error));
+    }
+    aviso('Sua conta foi excluída.');
     await supabase.auth.signOut();
   });
 }

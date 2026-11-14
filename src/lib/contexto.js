@@ -3,7 +3,7 @@ import { supabase } from './supabase.js';
 // Tudo o que as telas precisam saber sobre quem está logado
 export async function carregarContexto(usuario) {
   const [perfil, plataforma, orgs, solicitacoes, vinculos] = await Promise.all([
-    supabase.from('perfis').select('id, nome, telefone').eq('id', usuario.id).maybeSingle(),
+    supabase.from('perfis').select('id, nome, telefone, termos_versao').eq('id', usuario.id).maybeSingle(),
     supabase.from('admins_plataforma').select('usuario_id').eq('usuario_id', usuario.id).maybeSingle(),
     supabase.from('membros_organizacao')
       .select('papel, organizacoes(id, nome, status, termo_organizacao, termo_departamento, termo_evento, termo_funcao)')

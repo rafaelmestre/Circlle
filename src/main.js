@@ -23,6 +23,8 @@ import { telaMusica } from './telas/musica.js';
 import { telaMural } from './telas/mural.js';
 import { telaDashboard } from './telas/painelPlataforma.js';
 import { iniciarAtualizacao } from './lib/atualizacao.js';
+import { telaTermos, telaAceiteTermos } from './telas/termos.js';
+import { TERMOS_VERSAO } from './lib/termos.js';
 
 iniciarAtualizacao();
 
@@ -61,8 +63,14 @@ function telaFalha(mensagem) {
 // Rotas: #/  #/calendario  #/escalas[/:dep[/nova]]  #/repertorios[/:dep]  #/repertorio/:id  #/musica/:id[/:tom]  #/mural/:dep  #/entrar  #/solicitar  #/perfil
 //        #/org/:id  #/dep/:id  #/dep/:id/membro/:usuario  #/evento/:id  #/plataforma
 function rotear() {
-  if (!usuario || !ctx) return;
   const [rota, id, sub, extra] = location.hash.replace(/^#\/?/, '').split('/');
+  // Termos: abrem com ou sem login
+  if (rota === 'termos') return telaTermos({ voltar: usuario ? '#/perfil' : '#/' });
+  if (!usuario) return telaEntrada();
+  if (!ctx) return;
+
+  // LGPD: quem ainda não aceitou esta versão dos termos aceita antes de usar
+  if (ctx.perfil.termos_versao !== TERMOS_VERSAO) return telaAceiteTermos(ctx, () => irPara('#/'));
 
   // Telas que funcionam com ou sem vínculo
   if (rota === 'entrar') return telaEntrarCodigo(ctx, () => irPara('#/'));
@@ -138,8 +146,9 @@ supabase.auth.onAuthStateChange((evento, sessao) => {
     if (!novoUsuario) {
       usuario = null;
       ctx = null;
+      if (location.hash === '#/termos') return telaTermos({ voltar: '#/' });
       if (location.hash) history.replaceState(null, '', location.pathname);
-      return telaEntrada('entrar');
+      return telaEntrada();
     }
     // Ignora renovações de token: só recarrega quando a pessoa muda
     if (usuario?.id === novoUsuario.id && evento !== 'USER_UPDATED') return;

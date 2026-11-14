@@ -1,8 +1,13 @@
 import { supabase } from '../lib/supabase.js';
-import { app, traduzirErro, mostrarErro, limparMsg } from '../lib/ui.js';
+import { app, escapar, traduzirErro, mostrarErro, limparMsg } from '../lib/ui.js';
+import { TERMOS_VERSAO } from '../lib/termos.js';
+
+// O que já foi digitado sobrevive a uma ida aos termos e volta
+const rascunho = { modo: 'entrar', nome: '', email: '', aceite: false };
 
 // Tela de entrar / criar conta
-export function telaEntrada(modo = 'entrar', temConvite = false) {
+export function telaEntrada(modo = rascunho.modo, temConvite = false) {
+  rascunho.modo = modo;
   const criando = modo === 'criar';
 
   app.innerHTML = `
@@ -25,20 +30,26 @@ export function telaEntrada(modo = 'entrar', temConvite = false) {
           ${criando ? `
             <div class="field">
               <label for="nome">Nome</label>
-              <input id="nome" name="nome" autocomplete="name" required maxlength="80" />
+              <input id="nome" name="nome" autocomplete="name" required maxlength="80" value="${escapar(rascunho.nome)}" />
             </div>` : ''}
           <div class="field">
             <label for="email">E-mail</label>
-            <input id="email" name="email" type="email" autocomplete="email" required />
+            <input id="email" name="email" type="email" autocomplete="email" required value="${escapar(rascunho.email)}" />
           </div>
           <div class="field">
             <label for="senha">Senha</label>
             <input id="senha" name="senha" type="password" minlength="6" required
               autocomplete="${criando ? 'new-password' : 'current-password'}" />
           </div>
+          ${criando ? `
+            <label class="aceite__marcar">
+              <input type="checkbox" name="aceite" ${rascunho.aceite ? 'checked' : ''} />
+              <span>Li e aceito os <a href="#/termos">termos de uso e a política de privacidade</a>.</span>
+            </label>` : ''}
           <button class="btn btn-primary" type="submit">${criando ? 'Criar conta' : 'Entrar'}</button>
           <p class="msg" role="status" aria-live="polite"></p>
         </form>
+        <a class="auth__termos" href="#/termos">Termos de uso e privacidade</a>
       </div>
     </main>`;
 
@@ -47,6 +58,11 @@ export function telaEntrada(modo = 'entrar', temConvite = false) {
   );
 
   const form = app.querySelector('form');
+  form.addEventListener('input', () => {
+    rascunho.nome = form.nome?.value ?? rascunho.nome;
+    rascunho.email = form.email.value;
+    rascunho.aceite = form.aceite?.checked ?? rascunho.aceite;
+  });
   const botao = form.querySelector('button[type="submit"]');
 
   form.addEventListener('submit', async (evento) => {
@@ -55,13 +71,14 @@ export function telaEntrada(modo = 'entrar', temConvite = false) {
     limparMsg(form);
 
     if (criando && !dados.nome?.trim()) return mostrarErro(form, 'Informe seu nome.');
+    if (criando && !form.aceite.checked) return mostrarErro(form, 'Para criar a conta, aceite os termos de uso e a política de privacidade.');
 
     botao.disabled = true;
     const { error, data } = criando
       ? await supabase.auth.signUp({
           email: dados.email,
           password: dados.senha,
-          options: { data: { nome: dados.nome.trim() } } // usado pelo trigger que cria o perfil
+          options: { data: { nome: dados.nome.trim(), termos_versao: TERMOS_VERSAO } } // usado pelo trigger que cria o perfil
         })
       : await supabase.auth.signInWithPassword({ email: dados.email, password: dados.senha });
     botao.disabled = false;

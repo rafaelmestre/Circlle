@@ -2,7 +2,7 @@
 
 *Um produto Cappstone Studio · versão 9 (nov/2026)*
 
-> **O que mudou na v9:** o editor do repertório virou uma **playlist de verdade**: **segurar e arrastar** para mudar a ordem, **− / +** para mudar o tom de cada música e **deslizar para a esquerda** para tirar (como no WhatsApp). O mesmo gesto **exclui repertórios** na lista, com confirmação. O app instalado agora **se atualiza sozinho**, sem limpar cache nem reinstalar. A revisão está na seção 19.
+> **O que mudou na v9:** o editor do repertório virou uma **playlist de verdade**: **segurar e arrastar** para mudar a ordem, **− / +** para mudar o tom de cada música e **deslizar para a esquerda** para tirar (como no WhatsApp). O mesmo gesto **exclui repertórios** na lista, com confirmação. O app instalado agora **se atualiza sozinho**, sem limpar cache nem reinstalar. E entrou a parte de **LGPD**: página de **termos de uso e privacidade**, aceite no cadastro (e para quem já tinha conta), e a exclusão de conta não deixa mais um grupo sem administrador. A revisão está na seção 19.
 >
 > **O que mudou na v8:** **mural** do departamento (avisos com aviso no celular, fixar no topo, resumo no Início), **cifra própria** de cada música e **troca de tom** automática, com a tela da música abrindo já no tom do repertório. A revisão está na seção 18.
 >
@@ -258,7 +258,7 @@ O MVP está pronto quando, com os usuários de teste, for possível:
 - **RNF01** PWA instalável, responsivo e pensado para celulares simples.
 - **RNF02** Supabase (Postgres, Auth, Storage) com RLS isolando cada organização.
 - **RNF03** Notificações push gratuitas via PWA.
-- **RNF04** LGPD: termo de uso no cadastro e exclusão de conta pelo usuário.
+- **RNF04** LGPD: termos de uso e política de privacidade numa página aberta (`#/termos`), aceite obrigatório no cadastro e, para quem já tinha conta, no próximo acesso; o aceite guarda a versão e a hora. Exclusão de conta pelo Perfil, que apaga os dados na hora; o único administrador de um grupo com outras pessoas precisa passar a administração antes. Ao mudar os termos, troca-se a versão e todos aceitam de novo.
 - **RNF05** Código do departamento sem caracteres ambíguos (sem 0/O, 1/I/L).
 - **RNF06** Custo de operação zero na fase inicial.
 - **RNF07** Atualização automática: o app instalado procura versão nova sempre que volta para a frente da tela (e a cada 30 minutos) e recarrega sozinho. Ninguém precisa limpar cache nem reinstalar.
@@ -278,7 +278,9 @@ O MVP está pronto quando, com os usuários de teste, for possível:
 
 **v9**
 
-- Sem mudança no banco: a ordem e o tom continuam em `repertorio_itens`. Nada para rodar no Supabase.
+- `perfis.termos_versao` e `perfis.termos_aceitos_em`; o cadastro já grava o aceite, e a função `aceitar_termos` registra o de quem já tinha conta, com a hora do servidor.
+- `excluir_minha_conta` agora bloqueia o único administrador de um grupo que tem outras pessoas.
+- Banco da v8: `supabase/migracao-v9.sql`, que não apaga dados. A ordem e o tom do repertório continuam em `repertorio_itens`.
 
 
 **v8**
@@ -339,6 +341,7 @@ O MVP está pronto quando, com os usuários de teste, for possível:
 | Repertório como playlist (arrastar, tom, deslizar para apagar) | ✅ Pronto |
 | Mural, cifra própria e troca de tom | ✅ Pronto |
 | Atualização automática do app instalado | ✅ Pronto |
+| Termos de uso, privacidade e exclusão de conta (LGPD) | ✅ Pronto |
 | Sugestão automática e ensaios | ⏳ Etapa 2 |
 | Desempenho, relatórios e agenda | ⏳ Etapa 3 |
 
@@ -422,4 +425,5 @@ O MVP está pronto quando, com os usuários de teste, for possível:
 | ✅ Feito | Tirar música (RF28.1, RN23) | Deslizar para a esquerda mostra Apagar, no lugar do × |
 | ✅ Feito | Excluir repertório (RF28.2, RN23) | Mesmo gesto na lista de repertórios, com confirmação |
 | ✅ Feito | Atualização do app (RNF07) | O app instalado se atualiza sozinho ao voltar para a tela |
+| ✅ Feito | LGPD (RNF04) | Página de termos e privacidade, aceite no cadastro e no próximo acesso, exclusão de conta sem deixar grupo sem administrador |
 | ⏭️ Fica | Sugestão automática e ensaios | Próximas etapas |

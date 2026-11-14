@@ -1972,3 +1972,31 @@ code { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 0.9em; 
 .icone-alca { vertical-align: -2px; }
 .arrastavel--lista { border-radius: var(--radius-md); }
 .arrastavel > .lista__item.arrastavel__frente { position: relative; border-radius: 0; will-change: transform; -webkit-touch-callout: none; user-select: none; -webkit-user-select: none; }
+
+/* ==========================================================
+   v9 — Termos de uso e privacidade (LGPD)
+   ========================================================== */
+.documento { max-width: 680px; }
+.documento__texto { line-height: 1.6; color: var(--text); }
+.documento__texto h2 { margin: var(--space-6, 32px) 0 var(--space-2); font-size: 1.25rem; }
+.documento__texto h3 { margin: var(--space-4) 0 var(--space-1, 4px); font-size: 1rem; font-weight: var(--font-weight-semibold); }
+.documento__texto p, .documento__texto li { font-size: var(--font-size-sm, 0.9375rem); color: var(--text-muted); }
+.documento__texto strong { color: var(--text); font-weight: var(--font-weight-medium); }
+.documento__texto ul { padding-left: 1.2em; margin: var(--space-2) 0; display: grid; gap: var(--space-1, 4px); }
+.documento__texto a, .aceite__marcar a { color: var(--accent-text); }
+.documento__data { font-size: 0.75rem !important; }
+.aceite__marcar {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
+  font-size: var(--font-size-sm, 0.875rem);
+  color: var(--text-muted);
+  text-align: left;
+  cursor: pointer;
+}
+.aceite__marcar input { width: 20px; height: 20px; min-height: 0; flex-shrink: 0; margin: 1px 0 0; accent-color: var(--brand-blue, currentColor); }
+.auth__termos { display: block; text-align: center; font-size: 0.75rem; color: var(--text-muted); }
+.aceite { gap: var(--space-4); }
+.aceite .aceite__marcar { max-width: 360px; }
+.dica-excluir { font-size: 0.75rem; margin-top: var(--space-1, 4px); }
+.aceite .btn:disabled { opacity: 0.45; cursor: not-allowed; }
