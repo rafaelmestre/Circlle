@@ -8,7 +8,9 @@
 --     escalas…). As CONTAS de login continuam existindo e os
 --     perfis são recriados a partir delas.
 --     Já tem dados? Rode só as migrações que faltam:
---     v2 → migracao-v3.sql, depois v3 → migracao-v4.sql.
+--     v2 → migracao-v3.sql, v3 → migracao-v4.sql, v4 → migracao-v5.sql.
+--     O lembrete na véspera (agendador) fica só em migracao-v5.sql:
+--     rode-a depois deste arquivo, com a função notificar já publicada.
 --
 -- Estrutura (ver docs/documentacao.md):
 --   organização (grupo) → departamentos → eventos → disponibilidades → escalas

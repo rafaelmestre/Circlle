@@ -6,6 +6,10 @@
 // Segredos necessários (Edge Functions → Secrets):
 //   VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY, VAPID_SUBJECT (ex.: mailto:voce@email.com)
 // SUPABASE_URL e SUPABASE_SERVICE_ROLE_KEY o Supabase já fornece.
+//
+// Publicar com "Verify JWT" DESLIGADO: o lembrete diário chega do agendador
+// do banco (pg_cron), sem login. A função confere sozinha quem chama:
+// login do app (getUser) ou o segredo do agendador guardado no Vault.
 // ═══════════════════════════════════════════════════
 import { createClient } from 'npm:@supabase/supabase-js@2';
 import webpush from 'npm:web-push@3.6.7';
@@ -23,11 +27,19 @@ const banco = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE
   auth: { persistSession: false }
 });
 
-webpush.setVapidDetails(
-  Deno.env.get('VAPID_SUBJECT') ?? 'mailto:contato@circlle.app',
-  Deno.env.get('VAPID_PUBLIC_KEY')!,
-  Deno.env.get('VAPID_PRIVATE_KEY')!
-);
+// Chaves VAPID: lidas na primeira notificação; sem elas, a função responde mas não envia
+let vapidPronto = false;
+function prepararVapid() {
+  if (vapidPronto) return true;
+  const publica = Deno.env.get('VAPID_PUBLIC_KEY');
+  const privada = Deno.env.get('VAPID_PRIVATE_KEY');
+  if (!publica || !privada) {
+    console.error('Faltam os segredos VAPID_PUBLIC_KEY e VAPID_PRIVATE_KEY');
+    return false;
+  }
+  webpush.setVapidDetails(Deno.env.get('VAPID_SUBJECT') ?? 'mailto:contato@circlle.app', publica, privada);
+  return (vapidPronto = true);
+}
 
 type Aviso = { titulo: string; corpo: string; url: string; tag?: string };
 type Departamento = { id: string; nome: string; organizacao_id: string; ativo: boolean };
@@ -70,7 +82,7 @@ async function nomeDe(usuario: string) {
 
 // ---------- Envio ----------
 async function enviar(usuarios: string[], aviso: Aviso) {
-  if (!usuarios.length) return 0;
+  if (!usuarios.length || !prepararVapid()) return 0;
   const { data: inscricoes } = await banco.from('push_inscricoes')
     .select('id, endpoint, p256dh, auth').in('usuario_id', usuarios);
 
@@ -240,9 +252,51 @@ const tipos: Record<string, (eu: string, p: Pedido) => Promise<Plano>> = {
   }
 };
 
+// ---------- Lembrete na véspera (agendador do banco, todo dia às 18h) ----------
+async function lembreteVespera() {
+  // "Amanhã" no horário de Brasília (sem horário de verão desde 2019)
+  const hoje = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Sao_Paulo' }).format(new Date());
+  const inicio = new Date(`${hoje}T00:00:00-03:00`);
+  inicio.setUTCDate(inicio.getUTCDate() + 1);
+  const fim = new Date(inicio.getTime() + 24 * 60 * 60 * 1000);
+
+  const { data: eventos } = await banco.from('eventos')
+    .select('id, titulo, local, inicio, departamentos!inner(nome, ativo), escalas(usuario_id, resposta)')
+    .eq('status', 'publicado').eq('departamentos.ativo', true)
+    .gte('inicio', inicio.toISOString()).lt('inicio', fim.toISOString());
+
+  let enviados = 0;
+  for (const e of eventos ?? []) {
+    const dep = e.departamentos as unknown as { nome: string };
+    // Quem pediu ajuste ou avisou que não vai não recebe lembrete
+    const quem = (e.escalas ?? []).filter((s) => s.resposta !== 'ajuste').map((s) => s.usuario_id);
+    const hora = quando(e.inicio).split(' · ')[1];
+    enviados += await enviar(quem, {
+      titulo: `Amanhã: ${e.titulo}`,
+      corpo: `${hora} · ${dep.nome}${e.local ? ` · ${e.local}` : ''}. Até lá!`,
+      url: `/#/evento/${e.id}`,
+      tag: `lembrete-${e.id}`
+    });
+  }
+  return { eventos: eventos?.length ?? 0, enviados };
+}
+
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: cors });
   if (req.method !== 'POST') return resposta({ erro: 'Use POST' }, 405);
+
+  // Chamada do agendador: confere o segredo guardado no Vault
+  const segredo = req.headers.get('x-circlle-cron');
+  if (segredo) {
+    const { data: valido } = await banco.rpc('cron_valido', { p_segredo: segredo });
+    if (!valido) return resposta({ erro: 'Sem permissão' }, 403);
+    try {
+      return resposta(await lembreteVespera());
+    } catch (erro) {
+      console.error(erro);
+      return resposta({ erro: 'Falha no lembrete' }, 500);
+    }
+  }
 
   // Quem está pedindo (pelo login do app)
   const token = (req.headers.get('Authorization') ?? '').replace(/^Bearer\s+/i, '');

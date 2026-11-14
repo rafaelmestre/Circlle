@@ -173,7 +173,7 @@ Todos os usuários de teste usam e-mails `@circlle.test` (ver `supabase/seed-tes
 ### 7.7 Comunicação
 
 - **RF30** Mural do departamento: coordenadores e quem tem permissão de repertório publicam; membros leem.
-- **RF31** Notificações push, ligadas por aparelho no Perfil (ou pelo convite no Início): pedido de entrada, entrada aprovada, datas abertas, prévia enviada, escala publicada, escala alterada, pedido de ajuste. Ficam para depois: repertório enviado e lembrete na véspera.
+- **RF31** Notificações push, ligadas por aparelho no Perfil (ou pelo convite no Início): pedido de entrada, entrada aprovada, datas abertas, prévia enviada, escala publicada, escala alterada, pedido de ajuste. Lembrete na véspera: todo dia às 18h (Brasília) o servidor avisa quem está escalado para o dia seguinte, menos quem pediu ajuste. Fica para depois: repertório enviado.
 - **RF32** Compartilhar no WhatsApp: código do departamento, escala de uma data, escala do mês e datas abertas para marcar.
 
 ### 7.8 Painéis
@@ -267,6 +267,7 @@ O MVP está pronto quando, com os usuários de teste, for possível:
 - Função `registrar_push`: liga as notificações do aparelho à conta logada.
 - Função de servidor `notificar` (Supabase Edge Function): confere a permissão e envia os avisos.
 - Banco da v3: `supabase/migracao-v4.sql`, que não apaga dados.
+- Lembrete na véspera: `supabase/migracao-v5.sql` liga o agendador do banco (pg_cron + pg_net), guarda um segredo no Vault e cria `cron_valido`, que a função usa para conferir que a chamada veio do agendador.
 
 **v3**
 
@@ -292,7 +293,7 @@ O MVP está pronto quando, com os usuários de teste, for possível:
 | Prévia, respostas e publicação do mês | ✅ Pronto |
 | Calendário pessoal | ✅ Pronto |
 | Painel do Circlle | ✅ Pronto |
-| Notificações push | ✅ Pronto (falta o lembrete na véspera) |
+| Notificações push e lembrete na véspera | ✅ Pronto |
 | Rótulos, departamentos desativados e WhatsApp | ✅ Pronto |
 | Sugestão automática, ensaios, repertório e mural | ⏳ Etapa 2 |
 
@@ -320,7 +321,7 @@ O MVP está pronto quando, com os usuários de teste, for possível:
 
 | | Requisito | O que aconteceu |
 |---|---|---|
-| ✅ Feito | Notificações push (RF31) | Sete avisos prontos; lembrete na véspera e repertório enviado ficam para depois |
+| ✅ Feito | Notificações push (RF31) | Sete avisos e o lembrete na véspera; repertório enviado fica para depois |
 | ✅ Feito | Rótulos (RF09) | Tela "Nomes no app" do administrador; o nome do evento vira sugestão ao abrir datas |
 | ✅ Feito | Renomear e desativar departamento (RF08) | Coordenador renomeia; administrador desativa e reativa |
 | ✅ Feito | WhatsApp (RF32) | Escala de uma data, escala do mês e datas abertas |

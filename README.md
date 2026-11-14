@@ -47,7 +47,7 @@ Ferramentas de gestão costumam ser caras e feitas para grandes organizações. 
 - **Montar a escala em 3 passos**: quem vai, o que cada um faz e revisar
 - **Várias funções por pessoa** na mesma data, como tocar e cantar
 - **Prévia**: a equipe confere a escala e confirma ou pede ajuste antes de publicar
-- **Notificações no celular**: datas abertas, prévia, escala publicada ou alterada, pedidos de entrada e de ajuste
+- **Notificações no celular**: datas abertas, prévia, escala publicada ou alterada, pedidos de entrada e de ajuste, e lembrete na véspera
 - **WhatsApp**: mande a escala de uma data, a escala do mês ou as datas para marcar
 - **Sugestão automática** em rodízio e **ensaios** (em breve)
 
@@ -128,9 +128,9 @@ cp .env.example .env   # preencha com a URL e a chave publishable do Supabase
 npm run dev
 ```
 
-**Banco de dados:** crie um projeto no [Supabase](https://supabase.com) e rode [`supabase/schema.sql`](supabase/schema.sql) no **SQL Editor**. Para dados de teste, rode também [`supabase/seed-teste.sql`](supabase/seed-teste.sql). Quem já tem dados roda só as migrações que faltam, que não apagam nada: [`migracao-v3.sql`](supabase/migracao-v3.sql) (v2 → v3) e [`migracao-v4.sql`](supabase/migracao-v4.sql) (v3 → v4).
+**Banco de dados:** crie um projeto no [Supabase](https://supabase.com) e rode [`supabase/schema.sql`](supabase/schema.sql) no **SQL Editor**. Para dados de teste, rode também [`supabase/seed-teste.sql`](supabase/seed-teste.sql). Quem já tem dados roda só as migrações que faltam, que não apagam nada: [`migracao-v3.sql`](supabase/migracao-v3.sql) (v2 → v3), [`migracao-v4.sql`](supabase/migracao-v4.sql) (v3 → v4) e [`migracao-v5.sql`](supabase/migracao-v5.sql) (lembrete na véspera, depois de publicar a função).
 
-**Notificações (opcional):** gere as chaves com `npx web-push generate-vapid-keys`, coloque a pública em `VITE_VAPID_PUBLIC_KEY` no `.env`, cadastre `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY` e `VAPID_SUBJECT` nos *secrets* das Edge Functions do Supabase e publique a função [`supabase/functions/notificar`](supabase/functions/notificar/index.ts). Sem isso, o app funciona normalmente, só sem os avisos.
+**Notificações (opcional):** gere as chaves com `npx web-push generate-vapid-keys`, coloque a pública em `VITE_VAPID_PUBLIC_KEY` no `.env`, cadastre `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY` e `VAPID_SUBJECT` nos *secrets* das Edge Functions do Supabase e publique a função [`supabase/functions/notificar`](supabase/functions/notificar/index.ts) com *Verify JWT* desligado (ela confere o login sozinha). Sem isso, o app funciona normalmente, só sem os avisos.
 
 ## 📁 Estrutura
 
@@ -170,7 +170,7 @@ Circlle/
 - [x] Painel do Circlle
 - [x] Notificações push
 - [x] Nomes do grupo, departamentos desativados e WhatsApp
-- [ ] Lembrete na véspera
+- [x] Lembrete na véspera
 
 **Etapa 2**
 - [ ] Sugestão automática de escala
