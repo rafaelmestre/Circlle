@@ -1,7 +1,9 @@
 # Circlle — Documentação do Projeto
 
-*Um produto Cappstone Studio · versão 6 (nov/2026)*
+*Um produto Cappstone Studio · versão 7 (nov/2026)*
 
+> **O que mudou na v7:** **repertórios** como uma playlist. Quem tem a permissão cria a lista, busca ou cadastra as músicas, acerta a ordem e o tom de cada uma e aplica numa data. A equipe vê o repertório na tela da data, com o link ou a busca da cifra no Cifra Club, e recebe um aviso quando ele chega numa escala já enviada. A revisão está na seção 17.
+>
 > **O que mudou na v6:** o app voltou ao princípio, que é **substituir a imagem da escala do mês**. O Início mostra a **escala do mês em tabela** (datas nas linhas, funções nas colunas, com o seu nome em destaque). Cada função ganhou **uma tela**, e a barra de baixo muda conforme o papel. O perfil abre pelo avatar. A aba **Escalas** cria escala **avulsa, semanal ou mensal** e edita as datas. O coordenador libera **"pode montar escalas"** e **"pode montar repertórios"** no perfil do membro. O dono da plataforma tem **Dashboard** e **Assinantes**. O **lembrete na véspera** (v5) avisa às 18h. A revisão está na seção 16.
 >
 > **O que mudou na v4:** **notificações no celular** (datas abertas, prévia, escala publicada, mudanças na escala, pedidos de entrada e de ajuste), **nomes no app** definidos pelo grupo (rótulos), departamento **renomeado, desativado e reativado**, escala e datas **compartilhadas no WhatsApp**, regra de que **coordenador sempre monta repertório** e um visual mais limpo. A revisão está na seção 15.
@@ -168,9 +170,9 @@ Todos os usuários de teste usam e-mails `@circlle.test` (ver `supabase/seed-tes
 
 ### 7.6 Repertório (departamentos com o módulo ativo)
 
-- **RF27** Banco de músicas privado da organização: nome, artista, tom, link e cifra (ChordPro).
-- **RF28** Quem tem permissão monta o repertório do evento e envia aos escalados.
-- **RF29** Atalho de busca da cifra no Cifra Club e troca de tom automática.
+- **RF27** Banco de músicas privado da organização: nome, artista, tom e link. Cifra própria (ChordPro) fica para depois.
+- **RF28** Repertório como uma playlist do departamento: nome, músicas em ordem e tom de cada uma. Um repertório pode ser aplicado em várias datas (cada data usa um). Os escalados recebem um aviso quando o repertório chega numa escala já enviada.
+- **RF29** Atalho de busca da cifra no Cifra Club (ou o link cadastrado). Troca de tom automática fica para depois.
 
 ### 7.7 Comunicação
 
@@ -263,7 +265,14 @@ O MVP está pronto quando, com os usuários de teste, for possível:
 
 ---
 
-## 12. Banco de dados (v6)
+## 12. Banco de dados (v7)
+
+**v7**
+
+- Tabelas `repertorios` (por departamento) e `repertorio_itens` (música, ordem, tom e observação); `eventos.repertorio_id` liga a data ao repertório.
+- Travas: a música é da mesma organização e o repertório é do mesmo departamento da data. A função `aplicar_repertorio` deixa quem monta repertório aplicar numa data sem poder mexer na escala.
+- Banco da v6: `supabase/migracao-v7.sql`, que não apaga dados.
+
 
 **v6**
 
@@ -352,4 +361,16 @@ O MVP está pronto quando, com os usuários de teste, for possível:
 | ✅ Feito | Dashboard e Assinantes | Telas do dono da plataforma, com busca e filtro por situação |
 | ✅ Feito | Lembrete na véspera (v5) | Todo dia às 18h, para quem está escalado no dia seguinte |
 | ⏭️ Próxima etapa | Repertórios | Aba já aparece para quem tem a permissão, como "em breve" |
+
+---
+
+## 17. Revisão de requisitos (v7)
+
+| | Requisito | O que aconteceu |
+|---|---|---|
+| ✅ Feito | Repertório como playlist (RF28) | Criar, buscar e cadastrar músicas, ordem, tom por música, aplicar e tirar de datas |
+| ✅ Feito | Repertório na tela da data | Membros veem a lista com tom e o atalho da cifra |
+| ✅ Feito | Aviso de repertório (RF31) | Quando aplicado numa escala em prévia ou publicada |
+| ✅ Feito | Calendário | Botões Mês e Lista abaixo do título, sem encostar no avatar |
+| ⏭️ Fica | Cifra própria e troca de tom automática (RF27, RF29) | Próxima etapa |
 

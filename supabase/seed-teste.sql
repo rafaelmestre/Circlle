@@ -166,6 +166,29 @@ insert into public.escala_funcoes (escala_id, funcao_id) values
 
 
 -- ───────────────────────────────────────────────────
+-- 5b. Repertório (v7): músicas da organização e um repertório aplicado
+-- ───────────────────────────────────────────────────
+insert into public.musicas (id, organizacao_id, titulo, artista, tom, link) values
+  ('d1000000-0000-4000-8000-000000000001', 'a0000000-0000-4000-8000-000000000001', 'Aquarela', 'Toquinho', 'G', null),
+  ('d1000000-0000-4000-8000-000000000002', 'a0000000-0000-4000-8000-000000000001', 'Trem-Bala', 'Ana Vilela', 'C', null),
+  ('d1000000-0000-4000-8000-000000000003', 'a0000000-0000-4000-8000-000000000001', 'Tocando em Frente', 'Almir Sater', 'D', null),
+  ('d1000000-0000-4000-8000-000000000004', 'a0000000-0000-4000-8000-000000000001', 'Epitáfio', 'Titãs', 'A', null)
+on conflict (id) do nothing;
+
+insert into public.repertorios (id, departamento_id, nome) values
+  ('d2000000-0000-4000-8000-000000000001', 'c0000000-0000-4000-8000-000000000001', 'Apresentação na praça')
+on conflict (id) do nothing;
+
+insert into public.repertorio_itens (repertorio_id, musica_id, ordem, tom) values
+  ('d2000000-0000-4000-8000-000000000001', 'd1000000-0000-4000-8000-000000000001', 1, 'G'),
+  ('d2000000-0000-4000-8000-000000000001', 'd1000000-0000-4000-8000-000000000003', 2, 'D'),
+  ('d2000000-0000-4000-8000-000000000001', 'd1000000-0000-4000-8000-000000000002', 3, 'D')
+on conflict (repertorio_id, musica_id) do nothing;
+
+update public.eventos set repertorio_id = 'd2000000-0000-4000-8000-000000000001'
+ where id = 'e0000000-0000-4000-8000-000000000001';
+
+-- ───────────────────────────────────────────────────
 -- 6. Conferência
 -- ───────────────────────────────────────────────────
 select p.nome, u.email,

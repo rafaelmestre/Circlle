@@ -243,12 +243,10 @@ export async function telaCalendario(ctx) {
 
     casca(ctx, 'calendario', `
       <main class="tela tela--com-nav">
-        <div class="secao__cab">
-          <div class="titulo"><h1>Calendário</h1></div>
-          <div class="segmentos" role="group" aria-label="Modo de visualização">
-            <button data-visao="mes" aria-pressed="${visao === 'mes'}">${icone.calendario(16)} Mês</button>
-            <button data-visao="lista" aria-pressed="${visao === 'lista'}">${icone.lista(16)} Lista</button>
-          </div>
+        <div class="titulo titulo--topo"><h1>Calendário</h1></div>
+        <div class="segmentos segmentos--largo" role="group" aria-label="Modo de visualização">
+          <button data-visao="mes" aria-pressed="${visao === 'mes'}">${icone.calendario(16)} Mês</button>
+          <button data-visao="lista" aria-pressed="${visao === 'lista'}">${icone.lista(16)} Lista</button>
         </div>
 
         ${aguardando ? `

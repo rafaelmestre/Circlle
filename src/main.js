@@ -18,6 +18,7 @@ import { telaCalendario } from './telas/calendario.js';
 import { telaEscalas } from './telas/escalas.js';
 import { telaMembro } from './telas/membro.js';
 import { telaRepertorios } from './telas/repertorios.js';
+import { telaRepertorio } from './telas/repertorio.js';
 import { telaDashboard } from './telas/painelPlataforma.js';
 
 let usuario = null;
@@ -52,7 +53,7 @@ function telaFalha(mensagem) {
   app.querySelector('#sair').addEventListener('click', () => supabase.auth.signOut());
 }
 
-// Rotas: #/  #/calendario  #/escalas[/:dep[/nova]]  #/repertorios  #/entrar  #/solicitar  #/perfil
+// Rotas: #/  #/calendario  #/escalas[/:dep[/nova]]  #/repertorios[/:dep]  #/repertorio/:id  #/entrar  #/solicitar  #/perfil
 //        #/org/:id  #/dep/:id  #/dep/:id/membro/:usuario  #/evento/:id  #/plataforma
 function rotear() {
   if (!usuario || !ctx) return;
@@ -73,7 +74,9 @@ function rotear() {
     case 'escalas':
       return sub === 'nova' ? telaNovasDatas(ctx, id) : telaEscalas(ctx, id);
     case 'repertorios':
-      return telaRepertorios(ctx);
+      return telaRepertorios(ctx, id);
+    case 'repertorio':
+      return telaRepertorio(ctx, id);
     case 'dep':
       if (sub === 'datas') return location.replace(`#/escalas/${id}/nova`);
       if (sub === 'membro') return telaMembro(ctx, id, extra, atualizar);

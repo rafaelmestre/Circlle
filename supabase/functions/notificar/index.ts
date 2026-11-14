@@ -241,6 +241,34 @@ const tipos: Record<string, (eu: string, p: Pedido) => Promise<Plano>> = {
     ]];
   },
 
+  // Repertório aplicado numa data com escala enviada: avisa quem está nela
+  async repertorio(eu, p) {
+    if (!ehUuid(p.evento_id)) throw new Error('Pedido inválido');
+    const { data: e } = await banco.from('eventos')
+      .select('id, titulo, inicio, status, departamento_id, escalas(usuario_id), repertorios(nome, repertorio_itens(count))')
+      .eq('id', p.evento_id).maybeSingle();
+    if (!e) return [];
+    const dep = await departamento(e.departamento_id);
+    if (!dep) return [];
+    const { data: eu_dep } = await banco.from('membros_departamento').select('perm_repertorio')
+      .eq('departamento_id', dep.id).eq('usuario_id', eu).eq('status', 'ativo').maybeSingle();
+    const { data: modulo } = await banco.from('departamentos').select('modulo_repertorio').eq('id', dep.id).maybeSingle();
+    const pode = (await escaladores(dep)).includes(eu) || (modulo?.modulo_repertorio && eu_dep?.perm_repertorio);
+    if (!pode) throw new Error('Sem permissão');
+    const rep = e.repertorios as unknown as { nome: string; repertorio_itens: { count: number }[] } | null;
+    if (!rep || !['previa', 'publicado'].includes(e.status)) return [];
+    const n = rep.repertorio_itens?.[0]?.count ?? 0;
+    return [[
+      (e.escalas ?? []).map((s) => s.usuario_id).filter((id) => id !== eu),
+      {
+        titulo: `Repertório de ${e.titulo}`,
+        corpo: `${quando(e.inicio)} · ${n} ${n === 1 ? 'música' : 'músicas'}. Toque para ver os tons.`,
+        url: `/#/evento/${e.id}`,
+        tag: `repertorio-${e.id}`
+      }
+    ]];
+  },
+
   // Escalado pediu ajuste ou avisou que não vai: avisa a coordenação
   async ajuste(eu, p) {
     if (!ehUuid(p.evento_id)) throw new Error('Pedido inválido');

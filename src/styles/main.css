@@ -1739,3 +1739,74 @@ strong { font-weight: var(--font-weight-medium); }
 /* Em breve */
 .em-breve { display: grid; justify-items: center; text-align: center; gap: var(--space-3); padding: var(--space-6, 32px) var(--space-4); }
 .em-breve .icon-circle { width: 56px; height: 56px; color: var(--accent-text); background: var(--accent-tint); }
+
+/* Calendário: Mês/Lista abaixo do título, longe do avatar */
+.segmentos--largo { display: grid; grid-template-columns: 1fr 1fr; }
+.segmentos--largo button { justify-content: center; }
+
+/* ==========================================================
+   v7 — Repertórios
+   ========================================================== */
+.musicas { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--space-2); }
+.musica {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-3) var(--space-3) var(--space-4);
+  border-radius: 16px;
+  background: var(--surface);
+  min-width: 0;
+}
+.musica__num {
+  flex-shrink: 0;
+  width: 24px;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-muted);
+  text-align: center;
+}
+.musica__texto { flex: 1; min-width: 0; display: grid; gap: 1px; }
+.musica__texto strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: var(--font-weight-medium); }
+.musica__texto small { color: var(--text-muted); font-size: 0.75rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.musica__tom {
+  flex-shrink: 0;
+  min-width: 34px;
+  padding: 2px 8px;
+  border-radius: 8px;
+  background: var(--accent-tint);
+  color: var(--accent-text);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  text-align: center;
+}
+.musica__tom-campo input {
+  width: 52px;
+  min-height: 36px;
+  padding: 0 6px;
+  text-align: center;
+  font-weight: var(--font-weight-semibold);
+  color: var(--accent-text);
+}
+.musica__acoes { display: flex; flex-shrink: 0; gap: 2px; }
+.musicas--editar .musica { padding-left: var(--space-2); flex-wrap: wrap; }
+.icone-botao--mini { width: 32px; height: 32px; min-width: 32px; font-size: 1rem; }
+.icone-botao--mini:disabled { opacity: 0.35; cursor: default; }
+.icone-botao--perigo { color: var(--status-declined); }
+.repertorio__icone { width: 40px; height: 40px; flex-shrink: 0; color: var(--accent-text); background: var(--accent-tint); }
+details.card > summary { cursor: pointer; display: flex; align-items: center; gap: var(--space-2); font-weight: var(--font-weight-medium); }
+details.card[open] > summary { margin-bottom: var(--space-3); }
+.icone-botao { text-decoration: none; }
+/* Editor: título inteiro na primeira linha, ações embaixo */
+.musicas--editar .musica {
+  display: grid;
+  grid-template-columns: 24px minmax(0, 1fr) auto;
+  row-gap: var(--space-2);
+}
+.musicas--editar .musica__acoes { grid-column: 2 / -1; justify-content: flex-end; }
+.musicas--editar .musica__texto strong { white-space: normal; }
+.musica__tom-campo input {
+  background: var(--accent-tint);
+  border: 1px solid transparent;
+  border-radius: 10px;
+}
+.musica__tom-campo input:focus { border-color: var(--accent-text); outline: none; }

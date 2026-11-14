@@ -4,12 +4,16 @@ import {
   escapar, iniciais, formatarData, casca, icone, botaoVoltar, vazio, aviso, traduzirErro, comBotao,
   nomesFuncoes, badgeResposta, STATUS_EVENTO, linkWhats, textoEscala
 } from '../lib/ui.js';
+import { blocoRepertorio } from '../lib/repertorio.js';
+
+// Repertório aplicado à data, com as músicas em ordem
+const SEL_REPERTORIO = 'repertorios(id, nome, repertorio_itens(ordem, tom, observacao, musicas(titulo, artista, tom, link)))';
 
 // Evento: o coordenador monta a escala em 3 passos (RF22, RF24);
 // o membro vê a prévia ou a escala publicada e responde.
 export async function telaEvento(ctx, eventoId) {
   const { data: ev } = await supabase.from('eventos')
-    .select('id, titulo, local, inicio, status, departamento_id, departamentos(id, nome, organizacao_id)')
+    .select(`id, titulo, local, inicio, status, departamento_id, repertorio_id, departamentos(id, nome, organizacao_id), ${SEL_REPERTORIO}`)
     .eq('id', eventoId).maybeSingle();
   if (!ev) {
     location.hash = '#/';
@@ -141,6 +145,8 @@ async function verEscala(ctx, ev, dep) {
             ${equipePorFuncao(escalas, ctx.usuario.id)}
             ${botaoWhats(ev, dep, escalas)}
           </section>` : ''}
+        ${ev.status === 'aberto' ? '' : blocoRepertorio(ev.repertorios, {
+          podeEditar: ctx.depsRepertorio.some((d) => d.id === dep.id), depId: dep.id })}
       </main>`);
 
     const q = (sel) => document.querySelector(sel);
@@ -425,7 +431,8 @@ async function montarEscala(ctx, ev, dep) {
         ${cabecalho(ev, dep, voltar, 'Escalas')}
         ${progresso()}
         ${passo === 1 ? passo1() : passo === 2 ? passo2() : passo3()}
-        ${passo === 3 ? `${editarData()}<button class="btn btn-ghost btn-perigo" id="excluir">Excluir esta data</button>` : ''}
+        ${passo === 3 ? `${blocoRepertorio(ev.repertorios, {
+          podeEditar: ctx.depsRepertorio.some((d) => d.id === dep.id), depId: dep.id })}${editarData()}<button class="btn btn-ghost btn-perigo" id="excluir">Excluir esta data</button>` : ''}
       </main>
       <div class="barra-acao">${barra()}</div>`);
     ligar();
