@@ -4,6 +4,10 @@ import { escapar, icone } from './ui.js';
 export const linkCifra = (m) =>
   `https://www.cifraclub.com.br/?q=${encodeURIComponent(`${m.titulo} ${m.artista ?? ''}`.trim())}`;
 
+// Tela da música já no tom do repertório
+export const linkMusica = (i) =>
+  `#/musica/${i.musica_id ?? i.musicas.id}${i.tomFinal ? `/${encodeURIComponent(i.tomFinal)}` : ''}`;
+
 // Itens em ordem, com o tom da lista valendo sobre o tom original
 export function itensOrdenados(rep) {
   return [...(rep?.repertorio_itens ?? [])]
@@ -45,9 +49,8 @@ export function blocoRepertorio(rep, { podeEditar = false, depId = '' } = {}) {
               <small>${escapar(i.musicas.artista ?? '')}${i.observacao ? ` · ${escapar(i.observacao)}` : ''}</small>
             </span>
             ${i.tomFinal ? `<span class="musica__tom" aria-label="Tom ${escapar(i.tomFinal)}">${escapar(i.tomFinal)}</span>` : ''}
-            <a class="icone-botao icone-botao--mini" target="_blank" rel="noopener"
-               href="${escapar(i.musicas.link || linkCifra(i.musicas))}"
-               aria-label="${i.musicas.link ? 'Abrir link' : 'Buscar cifra'} de ${escapar(i.musicas.titulo)}">${icone.seta()}</a>
+            <a class="icone-botao icone-botao--mini" href="${linkMusica(i)}"
+               aria-label="Cifra de ${escapar(i.musicas.titulo)}${i.tomFinal ? ` em ${escapar(i.tomFinal)}` : ''}">${icone.seta()}</a>
           </li>`).join('') || '<li class="vazio">Nenhuma música ainda.</li>'}
       </ol>
     </section>`;

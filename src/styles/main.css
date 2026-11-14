@@ -1810,3 +1810,44 @@ details.card[open] > summary { margin-bottom: var(--space-3); }
   border-radius: 10px;
 }
 .musica__tom-campo input:focus { border-color: var(--accent-text); outline: none; }
+
+/* ==========================================================
+   v8 — Mural e cifras
+   ========================================================== */
+.aviso-mural { display: grid; gap: var(--space-2); position: relative; }
+.aviso-mural--fixado { box-shadow: inset 3px 0 0 var(--accent-text); }
+.aviso-mural__fixo {
+  justify-self: start;
+  font-size: 0.6875rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--accent-text);
+}
+.aviso-mural__titulo { margin: 0; font-size: 1rem; font-weight: var(--font-weight-semibold); }
+.aviso-mural__corpo { margin: 0; white-space: pre-line; color: var(--text-muted); line-height: 1.5; }
+.aviso-mural__meta { color: var(--text-muted); font-size: 0.75rem; }
+.aviso-mural__acoes { justify-content: flex-start; gap: var(--space-4); }
+.link-botao--perigo { color: var(--status-declined); }
+
+.tons { display: grid; gap: var(--space-3); }
+.tons__cab { display: grid; grid-template-columns: auto 1fr auto; align-items: center; }
+.tons__cab .icone-botao { font-size: 1.25rem; }
+.tons__atual { text-align: center; display: grid; }
+.tons__atual small { color: var(--text-muted); font-size: 0.75rem; }
+.tons__atual strong { font-size: 1.75rem; font-weight: var(--font-weight-semibold); color: var(--accent-text); }
+.tons__chips { justify-content: center; }
+.chip--mini { min-height: 32px; padding: 0 10px; font-size: 0.8125rem; }
+
+.cifra {
+  margin: 0;
+  overflow-x: auto;
+  font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.875rem;
+  line-height: 1.55;
+  white-space: pre;
+  color: var(--text);
+}
+.cifra__acordes { color: var(--accent-text); font-weight: 700; }
+.cifra__parte { color: var(--text-muted); font-weight: 700; }
+.cifra-campo { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.875rem; line-height: 1.5; white-space: pre; }
+code { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 0.9em; }

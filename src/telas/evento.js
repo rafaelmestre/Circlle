@@ -7,7 +7,7 @@ import {
 import { blocoRepertorio } from '../lib/repertorio.js';
 
 // Repertório aplicado à data, com as músicas em ordem
-const SEL_REPERTORIO = 'repertorios(id, nome, repertorio_itens(ordem, tom, observacao, musicas(titulo, artista, tom, link)))';
+const SEL_REPERTORIO = 'repertorios(id, nome, repertorio_itens(ordem, tom, observacao, musica_id, musicas(id, titulo, artista, tom, link)))';
 
 // Evento: o coordenador monta a escala em 3 passos (RF22, RF24);
 // o membro vê a prévia ou a escala publicada e responde.

@@ -1,5 +1,6 @@
 import { supabase } from '../lib/supabase.js';
 import { estadoNotificacoes, ativarNotificacoes } from '../lib/notificacoes.js';
+import { cartaoAviso, podePublicar } from './mural.js';
 import {
   escapar, primeiroNome, formatarData, casca, icone, vazio, aviso, traduzirErro, comBotao, nomesFuncoes
 } from '../lib/ui.js';
@@ -122,7 +123,8 @@ export async function telaInicio(ctx) {
             <button type="button" class="icone-botao" id="mesSeguinte" aria-label="Próximo mês">${icone.proximo()}</button>
           </div>
           <div id="tabelaMes" aria-live="polite"></div>
-        </section>` : pendentes.length ? '' : `
+        </section>
+        <section class="secao" id="muralResumo" hidden></section>` : pendentes.length ? '' : `
         <section class="card vazio-guia">
           <h2 class="cartao__titulo">Você ainda não está em nenhum grupo</h2>
           <p class="texto-fraco">Peça o código para a coordenação e entre pelo seu perfil.</p>
@@ -156,6 +158,26 @@ export async function telaInicio(ctx) {
       return;
     }
     caixa.innerHTML = tabelaDoMes(data ?? [], ctx.usuario.id, mesVisto);
+    desenharMural();
+  };
+
+  // Mural: os últimos avisos do departamento escolhido
+  const desenharMural = async () => {
+    const caixaMural = document.querySelector('#muralResumo');
+    if (!caixaMural) return;
+    const alvo = depId;
+    const { data } = await supabase.from('avisos')
+      .select('id, titulo, corpo, fixado, created_at, perfis(nome)').eq('departamento_id', alvo)
+      .order('fixado', { ascending: false }).order('created_at', { ascending: false }).limit(2);
+    if (alvo !== depId) return;
+    const publica = podePublicar(ctx, alvo);
+    caixaMural.hidden = !(data?.length || publica);
+    caixaMural.innerHTML = `
+      <div class="secao__cab">
+        <h2>Mural</h2>
+        <a class="link-sutil" href="#/mural/${alvo}">${data?.length ? 'Ver tudo' : 'Escrever aviso'}</a>
+      </div>
+      ${(data ?? []).map((a) => cartaoAviso(a)).join('')}`;
   };
 
   document.querySelectorAll('[data-dep]').forEach((chip) =>

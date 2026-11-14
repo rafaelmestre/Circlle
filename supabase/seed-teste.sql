@@ -185,6 +185,15 @@ insert into public.repertorio_itens (repertorio_id, musica_id, ordem, tom) value
   ('d2000000-0000-4000-8000-000000000001', 'd1000000-0000-4000-8000-000000000002', 3, 'D')
 on conflict (repertorio_id, musica_id) do nothing;
 
+-- Cifra de exemplo (texto inventado, só para testar a troca de tom)
+update public.musicas set cifra = E'Intro: G  D  Em  C\n\n[G]Primeira linha de [D]exemplo\n[Em]segunda linha da [C]cifra\n\nRefrão:\nG          D/F#      Em7\nLetra de teste para trocar de tom\nC          D         G\nOutra linha de teste'
+ where id = 'd1000000-0000-4000-8000-000000000001';
+
+-- Mural (v8)
+insert into public.avisos (departamento_id, autor, titulo, corpo, fixado) values
+  ('c0000000-0000-4000-8000-000000000001', 'b0000000-0000-4000-8000-000000000002',
+   'Reunião dia 30 às 11h', 'Vamos alinhar a organização da equipe e a capacitação.', true);
+
 update public.eventos set repertorio_id = 'd2000000-0000-4000-8000-000000000001'
  where id = 'e0000000-0000-4000-8000-000000000001';
 

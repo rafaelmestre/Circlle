@@ -269,6 +269,28 @@ const tipos: Record<string, (eu: string, p: Pedido) => Promise<Plano>> = {
     ]];
   },
 
+  // Aviso novo no mural: avisa o departamento
+  async aviso(eu, p) {
+    if (!ehUuid(p.aviso_id)) throw new Error('Pedido inválido');
+    const { data: a } = await banco.from('avisos')
+      .select('id, titulo, corpo, autor, departamento_id').eq('id', p.aviso_id).maybeSingle();
+    if (!a) return [];
+    if (a.autor !== eu) throw new Error('Sem permissão');
+    const dep = await departamento(a.departamento_id);
+    if (!dep?.ativo) return [];
+    const { data } = await banco.from('membros_departamento').select('usuario_id')
+      .eq('departamento_id', dep.id).eq('status', 'ativo');
+    return [[
+      (data ?? []).map((m) => m.usuario_id).filter((id) => id !== eu),
+      {
+        titulo: `${dep.nome}: ${a.titulo}`,
+        corpo: String(a.corpo ?? 'Novo aviso no mural.').slice(0, 140),
+        url: `/#/mural/${dep.id}`,
+        tag: `aviso-${a.id}`
+      }
+    ]];
+  },
+
   // Escalado pediu ajuste ou avisou que não vai: avisa a coordenação
   async ajuste(eu, p) {
     if (!ehUuid(p.evento_id)) throw new Error('Pedido inválido');

@@ -1,7 +1,9 @@
 # Circlle — Documentação do Projeto
 
-*Um produto Cappstone Studio · versão 7 (nov/2026)*
+*Um produto Cappstone Studio · versão 8 (nov/2026)*
 
+> **O que mudou na v8:** **mural** do departamento (avisos com aviso no celular, fixar no topo, resumo no Início), **cifra própria** de cada música e **troca de tom** automática, com a tela da música abrindo já no tom do repertório. A revisão está na seção 18.
+>
 > **O que mudou na v7:** **repertórios** como uma playlist. Quem tem a permissão cria a lista, busca ou cadastra as músicas, acerta a ordem e o tom de cada uma e aplica numa data. A equipe vê o repertório na tela da data, com o link ou a busca da cifra no Cifra Club, e recebe um aviso quando ele chega numa escala já enviada. A revisão está na seção 17.
 >
 > **O que mudou na v6:** o app voltou ao princípio, que é **substituir a imagem da escala do mês**. O Início mostra a **escala do mês em tabela** (datas nas linhas, funções nas colunas, com o seu nome em destaque). Cada função ganhou **uma tela**, e a barra de baixo muda conforme o papel. O perfil abre pelo avatar. A aba **Escalas** cria escala **avulsa, semanal ou mensal** e edita as datas. O coordenador libera **"pode montar escalas"** e **"pode montar repertórios"** no perfil do membro. O dono da plataforma tem **Dashboard** e **Assinantes**. O **lembrete na véspera** (v5) avisa às 18h. A revisão está na seção 16.
@@ -170,13 +172,13 @@ Todos os usuários de teste usam e-mails `@circlle.test` (ver `supabase/seed-tes
 
 ### 7.6 Repertório (departamentos com o módulo ativo)
 
-- **RF27** Banco de músicas privado da organização: nome, artista, tom e link. Cifra própria (ChordPro) fica para depois.
+- **RF27** Banco de músicas privado da organização: nome, artista, tom, link e cifra própria. A cifra aceita acordes entre colchetes no meio da letra (`[G]Numa folha`) ou numa linha só de acordes em cima da letra.
 - **RF28** Repertório como uma playlist do departamento: nome, músicas em ordem e tom de cada uma. Um repertório pode ser aplicado em várias datas (cada data usa um). Os escalados recebem um aviso quando o repertório chega numa escala já enviada.
-- **RF29** Atalho de busca da cifra no Cifra Club (ou o link cadastrado). Troca de tom automática fica para depois.
+- **RF29** Troca de tom automática: a cifra abre no tom do repertório e muda com − / + ou escolhendo o tom; sustenidos ou bemóis conforme o tom. Atalho de busca no Cifra Club (ou o link cadastrado) quando ainda não há cifra.
 
 ### 7.7 Comunicação
 
-- **RF30** Mural do departamento: coordenadores e quem tem permissão de repertório publicam; membros leem.
+- **RF30** Mural do departamento: publica quem monta escalas ou repertórios; todos os membros leem e recebem o aviso no celular. Aviso pode ser fixado no topo. Cada um apaga o seu; a coordenação pode apagar qualquer um. O Início mostra os dois últimos.
 - **RF31** Notificações push, ligadas por aparelho no Perfil (ou pelo convite no Início): pedido de entrada, entrada aprovada, datas abertas, prévia enviada, escala publicada, escala alterada, pedido de ajuste. Lembrete na véspera: todo dia às 18h (Brasília) o servidor avisa quem está escalado para o dia seguinte, menos quem pediu ajuste. Fica para depois: repertório enviado.
 - **RF32** Compartilhar no WhatsApp: código do departamento, escala de uma data, escala do mês e datas abertas para marcar.
 
@@ -265,7 +267,14 @@ O MVP está pronto quando, com os usuários de teste, for possível:
 
 ---
 
-## 12. Banco de dados (v7)
+## 12. Banco de dados (v8)
+
+**v8**
+
+- `avisos.fixado`; regras do mural separadas em publicar, editar e apagar.
+- Limite de 20 mil caracteres na cifra.
+- Banco da v7: `supabase/migracao-v8.sql`, que não apaga dados.
+
 
 **v7**
 
@@ -373,4 +382,15 @@ O MVP está pronto quando, com os usuários de teste, for possível:
 | ✅ Feito | Aviso de repertório (RF31) | Quando aplicado numa escala em prévia ou publicada |
 | ✅ Feito | Calendário | Botões Mês e Lista abaixo do título, sem encostar no avatar |
 | ⏭️ Fica | Cifra própria e troca de tom automática (RF27, RF29) | Próxima etapa |
+
+---
+
+## 18. Revisão de requisitos (v8)
+
+| | Requisito | O que aconteceu |
+|---|---|---|
+| ✅ Feito | Mural (RF30) | Página do mural, resumo no Início, aviso no celular, fixar e apagar |
+| ✅ Feito | Cifra própria (RF27) | Dois jeitos de escrever: colchetes ou acordes em cima da letra |
+| ✅ Feito | Troca de tom (RF29) | Abre no tom do repertório; − / + e escolha do tom |
+| ⏭️ Fica | Sugestão automática e ensaios | Próximas etapas |
 

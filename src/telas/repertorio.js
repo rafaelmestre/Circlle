@@ -1,7 +1,7 @@
 import { supabase } from '../lib/supabase.js';
 import { notificar } from '../lib/notificacoes.js';
 import { escapar, casca, icone, botaoVoltar, vazio, aviso, traduzirErro, comBotao, formatarData, linkWhats } from '../lib/ui.js';
-import { linkCifra, itensOrdenados, textoRepertorio } from '../lib/repertorio.js';
+import { itensOrdenados, textoRepertorio, linkMusica } from '../lib/repertorio.js';
 
 const sem = (t) => String(t ?? '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
 
@@ -55,8 +55,8 @@ export async function telaRepertorio(ctx, repId, rolagem = 0) {
               <span class="musica__acoes">
                 <button type="button" class="icone-botao icone-botao--mini" data-mover="-1" ${n === 0 ? 'disabled' : ''} aria-label="Subir ${escapar(i.musicas.titulo)}">↑</button>
                 <button type="button" class="icone-botao icone-botao--mini" data-mover="1" ${n === itens.length - 1 ? 'disabled' : ''} aria-label="Descer ${escapar(i.musicas.titulo)}">↓</button>
-                <a class="icone-botao icone-botao--mini" target="_blank" rel="noopener" href="${escapar(i.musicas.link || linkCifra(i.musicas))}"
-                   aria-label="${i.musicas.link ? 'Abrir link' : 'Buscar cifra'} de ${escapar(i.musicas.titulo)}">${icone.seta(16)}</a>
+                <a class="icone-botao icone-botao--mini" href="${linkMusica(i)}"
+                   aria-label="Cifra de ${escapar(i.musicas.titulo)}">${icone.seta(16)}</a>
                 <button type="button" class="icone-botao icone-botao--mini icone-botao--perigo" data-tirar aria-label="Tirar ${escapar(i.musicas.titulo)}">×</button>
               </span>
             </li>`).join('') || `<li>${vazio('Busque abaixo ou cadastre a primeira música.')}</li>`}
