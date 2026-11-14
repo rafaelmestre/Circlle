@@ -14,7 +14,7 @@ export async function carregarContexto(usuario) {
       .in('status', ['em_analise', 'recusada'])
       .order('created_at', { ascending: false }),
     supabase.from('membros_departamento')
-      .select(`departamento_id, papel, perm_repertorio, status,
+      .select(`departamento_id, papel, perm_repertorio, perm_escala, status,
                departamentos(id, nome, codigo, modulo_repertorio, organizacao_id, ativo,
                  organizacoes(id, nome, status, termo_organizacao, termo_departamento, termo_evento, termo_funcao))`)
       .eq('usuario_id', usuario.id)
@@ -28,9 +28,33 @@ export async function carregarContexto(usuario) {
     .filter((m) => m.papel === 'admin' && m.organizacoes?.status === 'ativa')
     .map((m) => m.organizacoes);
 
+  // Departamentos das organizações que a pessoa administra
+  const depsOrgRes = orgsAdmin.length
+    ? await supabase.from('departamentos').select('id, nome, organizacao_id, modulo_repertorio')
+        .in('organizacao_id', orgsAdmin.map((o) => o.id)).eq('ativo', true).order('nome')
+    : { data: [] };
+
   // Vínculos de organizações suspensas e de departamentos desativados não aparecem
   const meusVinculos = (vinculos.data ?? [])
     .filter((v) => v.departamentos?.ativo && v.departamentos?.organizacoes?.status === 'ativa');
+
+  const ativos = meusVinculos.filter((v) => v.status === 'ativo');
+  const coordena = (depId, orgId) =>
+    ativos.some((v) => v.departamento_id === depId && v.papel === 'coordenador')
+    || orgsAdmin.some((o) => o.id === orgId);
+
+  // Onde a pessoa monta escalas: coordena, administra ou recebeu a permissão (RN21)
+  const porId = new Map();
+  for (const v of ativos) {
+    const d = v.departamentos;
+    porId.set(d.id, { id: d.id, nome: d.nome, organizacao_id: d.organizacao_id, modulo_repertorio: d.modulo_repertorio,
+      coordena: coordena(d.id, d.organizacao_id), escala: coordena(d.id, d.organizacao_id) || v.perm_escala,
+      repertorio: d.modulo_repertorio && (coordena(d.id, d.organizacao_id) || v.perm_repertorio) });
+  }
+  for (const d of depsOrgRes.data ?? []) {
+    if (!porId.has(d.id)) porId.set(d.id, { ...d, coordena: true, escala: true, repertorio: d.modulo_repertorio });
+  }
+  const deps = [...porId.values()];
 
   return {
     usuario,
@@ -39,12 +63,16 @@ export async function carregarContexto(usuario) {
     orgsAdmin,
     solicitacoes: solicitacoes.data ?? [],
     vinculos: meusVinculos,
-    ativos: meusVinculos.filter((v) => v.status === 'ativo'),
+    ativos,
+    depsEscala: deps.filter((d) => d.escala),
+    depsRepertorio: deps.filter((d) => d.repertorio),
 
     // Coordena o departamento? (coordenador ativo ou admin da organização)
-    coordena(depId, orgId) {
-      return meusVinculos.some((v) => v.departamento_id === depId && v.status === 'ativo' && v.papel === 'coordenador')
-        || orgsAdmin.some((o) => o.id === orgId);
+    coordena,
+    // Pode montar escalas? (coordena ou recebeu a permissão)
+    escala(depId, orgId) {
+      return coordena(depId, orgId)
+        || ativos.some((v) => v.departamento_id === depId && v.perm_escala);
     },
     ehAdmin(orgId) {
       return orgsAdmin.some((o) => o.id === orgId);

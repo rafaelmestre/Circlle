@@ -17,7 +17,7 @@ export async function telaEvento(ctx, eventoId) {
   }
 
   const dep = ev.departamentos;
-  return ctx.coordena(dep.id, dep.organizacao_id) ? montarEscala(ctx, ev, dep) : verEscala(ctx, ev, dep);
+  return ctx.escala(dep.id, dep.organizacao_id) ? montarEscala(ctx, ev, dep) : verEscala(ctx, ev, dep);
 }
 
 const cabecalho = (ev, dep, voltar, rotuloVoltar) => {
@@ -223,7 +223,7 @@ async function montarEscala(ctx, ev, dep) {
 
   const jaEnviada = ['previa', 'publicado', 'realizado'].includes(ev.status);
   let passo = jaEnviada ? 3 : 1;
-  const voltar = `#/dep/${dep.id}`;
+  const voltar = `#/escalas/${dep.id}`;
 
   const progresso = () => `
     <ol class="passos-escala" aria-label="Etapas da escala">
@@ -388,13 +388,44 @@ async function montarEscala(ctx, ev, dep) {
       <button class="btn btn-primary" data-salvar="previa">Enviar prévia</button>`;
   };
 
+  // Editar nome, dia, horário e local da data (CRUD da escala)
+  const editarData = () => {
+    const d = new Date(ev.inicio);
+    const p2 = (n) => String(n).padStart(2, '0');
+    return `
+      <details class="secao outros">
+        <summary>Editar nome, dia e horário</summary>
+        <form class="form card" id="editarData" novalidate>
+          <div class="field">
+            <label for="edTitulo">Nome</label>
+            <input id="edTitulo" name="titulo" required maxlength="80" value="${escapar(ev.titulo)}" />
+          </div>
+          <div class="linha linha--sem-margem form-duas">
+            <div class="field">
+              <label for="edDia">Dia</label>
+              <input id="edDia" name="dia" type="date" required value="${d.getFullYear()}-${p2(d.getMonth() + 1)}-${p2(d.getDate())}" />
+            </div>
+            <div class="field">
+              <label for="edHora">Horário</label>
+              <input id="edHora" name="hora" type="time" required value="${p2(d.getHours())}:${p2(d.getMinutes())}" />
+            </div>
+          </div>
+          <div class="field">
+            <label for="edLocal">Local (opcional)</label>
+            <input id="edLocal" name="local" maxlength="120" value="${escapar(ev.local ?? '')}" />
+          </div>
+          <button class="btn btn-ghost" type="submit">Salvar alterações da data</button>
+        </form>
+      </details>`;
+  };
+
   const render = () => {
-    casca(ctx, 'inicio', `
+    casca(ctx, 'escalas', `
       <main class="tela tela--com-nav tela--com-barra">
-        ${cabecalho(ev, dep, voltar, dep.nome)}
+        ${cabecalho(ev, dep, voltar, 'Escalas')}
         ${progresso()}
         ${passo === 1 ? passo1() : passo === 2 ? passo2() : passo3()}
-        ${passo === 3 ? '<button class="btn btn-ghost btn-perigo" id="excluir">Excluir esta data</button>' : ''}
+        ${passo === 3 ? `${editarData()}<button class="btn btn-ghost btn-perigo" id="excluir">Excluir esta data</button>` : ''}
       </main>
       <div class="barra-acao">${barra()}</div>`);
     ligar();
@@ -517,6 +548,24 @@ async function montarEscala(ctx, ev, dep) {
       if (error) return aviso(traduzirErro(error));
       existentes.get(ctx.usuario.id).resposta = 'confirmado';
       aviso('Presença confirmada!');
+      render();
+    });
+
+    document.querySelector('#editarData')?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const f = e.currentTarget;
+      const titulo = f.titulo.value.trim();
+      if (!titulo || !f.dia.value || !f.hora.value) return aviso('Preencha nome, dia e horário.');
+      const dados = { titulo, local: f.local.value.trim() || null, inicio: new Date(`${f.dia.value}T${f.hora.value}`).toISOString() };
+      const mudouDia = new Date(dados.inicio).getTime() !== new Date(ev.inicio).getTime();
+      const { error } = await comBotao(f.querySelector('button'), () => supabase.from('eventos').update(dados).eq('id', ev.id));
+      if (error) return aviso(traduzirErro(error));
+      Object.assign(ev, dados);
+      // Escala já enviada e o dia mudou: avisa quem está nela
+      if (mudouDia && ['previa', 'publicado'].includes(ev.status) && existentes.size) {
+        notificar('escala_alterada', { evento_id: ev.id, usuarios: [...existentes.keys()] });
+      }
+      aviso('Data atualizada.');
       render();
     });
 

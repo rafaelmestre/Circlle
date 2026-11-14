@@ -1,7 +1,9 @@
 # Circlle — Documentação do Projeto
 
-*Um produto Codemancer Studio · versão 4 (nov/2026)*
+*Um produto Cappstone Studio · versão 6 (nov/2026)*
 
+> **O que mudou na v6:** o app voltou ao princípio, que é **substituir a imagem da escala do mês**. O Início mostra a **escala do mês em tabela** (datas nas linhas, funções nas colunas, com o seu nome em destaque). Cada função ganhou **uma tela**, e a barra de baixo muda conforme o papel. O perfil abre pelo avatar. A aba **Escalas** cria escala **avulsa, semanal ou mensal** e edita as datas. O coordenador libera **"pode montar escalas"** e **"pode montar repertórios"** no perfil do membro. O dono da plataforma tem **Dashboard** e **Assinantes**. O **lembrete na véspera** (v5) avisa às 18h. A revisão está na seção 16.
+>
 > **O que mudou na v4:** **notificações no celular** (datas abertas, prévia, escala publicada, mudanças na escala, pedidos de entrada e de ajuste), **nomes no app** definidos pelo grupo (rótulos), departamento **renomeado, desativado e reativado**, escala e datas **compartilhadas no WhatsApp**, regra de que **coordenador sempre monta repertório** e um visual mais limpo. A revisão está na seção 15.
 >
 > **O que mudou na v3:** **calendário pessoal** (mês e lista), escala montada em **3 passos**, **várias funções por pessoa** na mesma data, **prévia** da escala com **confirmação ou pedido de ajuste**, e **escala do mês inteiro**. O pedido de ajuste substitui o remanejamento e o atalho de repetir dias da semana substitui o "duplicar escala". A revisão completa está na seção 14.
@@ -16,7 +18,7 @@ PWA para organizações que trabalham com voluntários ou colaboradores organiza
 
 ## 2. Propósito
 
-Dar a organizações pequenas, de periferia e de baixa renda uma ferramenta de gestão que normalmente só grandes organizações conseguem pagar. O Circlle é contratado pela organização, com valor acessível, e serve também de vitrine da Codemancer Studio.
+Dar a organizações pequenas, de periferia e de baixa renda uma ferramenta de gestão que normalmente só grandes organizações conseguem pagar. O Circlle é contratado pela organização, com valor acessível, e serve também de vitrine da Cappstone Studio.
 
 ---
 
@@ -145,12 +147,12 @@ Todos os usuários de teste usam e-mails `@circlle.test` (ver `supabase/seed-tes
 - **RF12** Código do departamento, curto e fácil de digitar, com opção de gerar um novo (o anterior deixa de valer).
 - **RF13** Membro busca o código e pede para entrar, marcando suas funções.
 - **RF14** Coordenador aprova ou recusa o pedido, podendo ajustar as funções.
-- **RF15** Coordenador concede ou retira a permissão de repertório.
+- **RF15** Coordenador concede ou retira, no perfil do membro, a permissão de repertório e a de montar escalas.
 - **RF16** Coordenador remove um membro do departamento.
 
 ### 7.4 Eventos e disponibilidade
 
-- **RF17** Coordenador abre várias datas de uma vez, com título, horário e local, sem limite de pessoas, e pode repetir dias da semana no mês (ex.: todos os domingos de dezembro).
+- **RF17** Nova escala em três tipos: **avulsa** (uma data), **semanal** (escolhe a semana e os dias, e as datas já aparecem) ou **mensal** (escolhe o mês e os dias). Dá para tirar ou acrescentar datas antes de criar, e depois editar nome, dia, horário e local de cada data ou excluí-la.
 - **RF18** Ciclo do evento: **aberto para disponibilidade → prévia → publicado → realizado** (ou cancelado).
 - **RF19** Membro vê as datas abertas dos seus departamentos e marca de uma vez em quais pode.
 - **RF20** Membro desmarca a disponibilidade enquanto a data está aberta.
@@ -178,7 +180,7 @@ Todos os usuários de teste usam e-mails `@circlle.test` (ver `supabase/seed-tes
 
 ### 7.8 Painéis
 
-- **RF33** Início do membro: atalho da próxima escala com o botão Confirmo, datas abertas para marcar disponibilidade, mural e departamentos.
+- **RF33** Início: a próxima escala com o botão Confirmo e a **escala do mês em tabela** de cada departamento, com navegação entre meses. Datas para marcar aparecem como um atalho para o Calendário.
 - **RF34** Painel do coordenador: pedidos de entrada, eventos abertos com o número de disponíveis e atalhos para escalar.
 - **RF35** Painel do administrador: departamentos e coordenadores.
 
@@ -216,7 +218,9 @@ Todos os usuários de teste usam e-mails `@circlle.test` (ver `supabase/seed-tes
 - **RN17** Coordenadores e administradores sempre podem montar o repertório dos seus departamentos (com o módulo ativo); a permissão de repertório é só para membros.
 - **RN18** Só o administrador desativa ou reativa um departamento. Desativado, ele some do app dos membros e coordenadores, mas nada é apagado. Nenhum departamento muda de organização.
 - **RN19** As notificações valem por aparelho. Ao sair da conta, o aparelho deixa de receber; se outra conta entrar e ativar, os avisos passam a ser dela.
-- **RN20** As notificações saem do servidor, que confere se quem pediu o aviso tem direito (ex.: só o coordenador avisa sobre a escala do seu departamento).
+- **RN20** As notificações saem do servidor, que confere se quem pediu o aviso tem direito (ex.: só quem monta escalas avisa sobre a escala do seu departamento).
+- **RN21** "Pode montar escalas" dá ao membro tudo o que o coordenador faz nas escalas daquele departamento (criar datas, montar, enviar prévia, publicar, editar e excluir datas), mas não aprova membros nem mexe em funções e ajustes. Só a coordenação liga ou desliga.
+- **RN22** A barra de baixo mostra só o que cada papel usa: membro (Início, Calendário); com repertório (+ Repertórios); quem monta escalas (+ Escalas); administrador do grupo (+ aba do grupo); dono da plataforma (Dashboard, Assinantes). O perfil abre pelo avatar, em qualquer tela.
 
 ---
 
@@ -259,7 +263,13 @@ O MVP está pronto quando, com os usuários de teste, for possível:
 
 ---
 
-## 12. Banco de dados (v4)
+## 12. Banco de dados (v6)
+
+**v6**
+
+- Coluna `membros_departamento.perm_escala` e função `pode_escalar`, usada nas regras de eventos, disponibilidade, escalas e funções na escala.
+- Banco da v5: `supabase/migracao-v6.sql`, que não apaga dados.
+
 
 **v4**
 
@@ -328,4 +338,18 @@ O MVP está pronto quando, com os usuários de teste, for possível:
 | ➕ Entra | RN17 a RN20 | Repertório dos coordenadores, departamento desativado e regras das notificações |
 | 🎨 Muda | Visual | Mais minimalista: menos brilho e gradiente, cartões mais leves; a marca continua |
 | ⏭️ Fica | Foto no perfil (RF02) | Segue opcional, sem data |
+
+---
+
+## 16. Revisão de requisitos (v6)
+
+| | Requisito | O que aconteceu |
+|---|---|---|
+| 🎯 Princípio | Substituir a imagem da escala do mês | O Início virou a escala do mês em tabela |
+| ✅ Feito | Uma tela por função (RN22) | Barra de baixo por papel; perfil pelo avatar |
+| ✅ Feito | Nova escala avulsa, semanal ou mensal (RF17) | Aba Escalas, com edição e exclusão de datas |
+| ➕ Entra | Pode montar escalas (RN21) | O coordenador liga no perfil do membro, junto com a de repertório |
+| ✅ Feito | Dashboard e Assinantes | Telas do dono da plataforma, com busca e filtro por situação |
+| ✅ Feito | Lembrete na véspera (v5) | Todo dia às 18h, para quem está escalado no dia seguinte |
+| ⏭️ Próxima etapa | Repertórios | Aba já aparece para quem tem a permissão, como "em breve" |
 

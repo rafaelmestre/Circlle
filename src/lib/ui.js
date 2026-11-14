@@ -116,6 +116,10 @@ export const icone = {
   local: (t = 16) => svg('<path d="M12 21s-7-6.2-7-11a7 7 0 0114 0c0 4.8-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/>', t),
   seta: (t = 18) => svg('<path d="M9 6l6 6-6 6"/>', t),
   calendario: (t) => svg('<rect x="3" y="5" width="18" height="16" rx="3"/><path d="M3 10h18M8 3v4M16 3v4"/>', t),
+  escalas: (t) => svg('<rect x="3" y="5" width="18" height="16" rx="3"/><path d="M3 10h18M8 3v4M16 3v4M12 13v5M9.5 15.5h5"/>', t),
+  musica: (t) => svg('<path d="M9 18V5l11-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="17" cy="16" r="3"/>', t),
+  grafico: (t) => svg('<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/>', t),
+  equipe: (t = 18) => svg('<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0113 0M16 4.5a3.5 3.5 0 010 7M18 14a6 6 0 013.5 6"/>', t),
   lista: (t = 18) => svg('<path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/>', t),
   anterior: (t = 20) => svg('<path d="M15 18l-6-6 6-6"/>', t),
   proximo: (t = 20) => svg('<path d="M9 6l6 6-6 6"/>', t),
@@ -209,17 +213,33 @@ export function textoEscala(ev, depNome, escalas) {
 }
 
 // ---------- Estrutura com navegação inferior ----------
+// Barra de baixo conforme o papel de cada um; o perfil abre pelo avatar
+export function itensNav(ctx) {
+  if (ctx.plataforma) {
+    const itens = [
+      { id: 'inicio', rota: '#/', rotulo: 'Dashboard', icone: icone.grafico() },
+      { id: 'plataforma', rota: '#/plataforma', rotulo: 'Assinantes', icone: icone.circlle() }
+    ];
+    if (ctx.vinculos.length) itens.push({ id: 'calendario', rota: '#/calendario', rotulo: 'Calendário', icone: icone.calendario() });
+    return itens;
+  }
+  const itens = [{ id: 'inicio', rota: '#/', rotulo: 'Início', icone: icone.inicio() }];
+  if (ctx.depsEscala.length) itens.push({ id: 'escalas', rota: '#/escalas', rotulo: 'Escalas', icone: icone.escalas() });
+  itens.push({ id: 'calendario', rota: '#/calendario', rotulo: 'Calendário', icone: icone.calendario() });
+  if (ctx.depsRepertorio.length) itens.push({ id: 'repertorios', rota: '#/repertorios', rotulo: 'Repertórios', icone: icone.musica() });
+  if (ctx.orgsAdmin.length) {
+    itens.push({ id: 'org', rota: `#/org/${ctx.orgsAdmin[0].id}`, rotulo: ctx.orgsAdmin[0].termo_organizacao, icone: icone.org() });
+  }
+  return itens;
+}
+
 export function casca(ctx, ativo, conteudo) {
-  const itens = [
-    { id: 'inicio', rota: '#/', rotulo: 'Início', icone: icone.inicio() },
-    { id: 'calendario', rota: '#/calendario', rotulo: 'Calendário', icone: icone.calendario() }
-  ];
-  if (ctx.orgsAdmin.length) itens.push({ id: 'org', rota: `#/org/${ctx.orgsAdmin[0].id}`, rotulo: ctx.orgsAdmin[0].termo_organizacao, icone: icone.org() });
-  if (ctx.plataforma) itens.push({ id: 'plataforma', rota: '#/plataforma', rotulo: 'Circlle', icone: icone.circlle() });
-  itens.push({ id: 'perfil', rota: '#/perfil', rotulo: 'Perfil', icone: icone.perfil() });
+  const itens = itensNav(ctx);
 
   app.innerHTML = `
     <div class="casca">
+      ${ativo === 'perfil' ? '' : `
+        <a class="casca__perfil avatar avatar--link" href="#/perfil" aria-label="Meu perfil">${escapar(iniciais(ctx.perfil.nome))}</a>`}
       ${conteudo}
       <nav class="nav" aria-label="Navegação principal" style="--itens:${itens.length}">
         ${itens.map((i) => `

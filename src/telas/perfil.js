@@ -1,5 +1,5 @@
 import { supabase } from '../lib/supabase.js';
-import { escapar, iniciais, casca, icone, vazio, aviso, traduzirErro, comBotao } from '../lib/ui.js';
+import { escapar, iniciais, casca, icone, vazio, aviso, traduzirErro, comBotao, botaoVoltar } from '../lib/ui.js';
 import { estadoNotificacoes, ativarNotificacoes, desativarNotificacoes } from '../lib/notificacoes.js';
 
 // Perfil: nome, departamentos e o que faz em cada um (RF02, RF03, RF04)
@@ -20,6 +20,7 @@ export async function telaPerfil(ctx, recarregarContexto) {
 
   casca(ctx, 'perfil', `
     <main class="tela tela--com-nav">
+      ${botaoVoltar('#/', 'Voltar')}
       <div class="perfil__cab">
         <span class="avatar avatar--grande" aria-hidden="true">${escapar(iniciais(ctx.perfil.nome))}</span>
         <div>
@@ -37,7 +38,7 @@ export async function telaPerfil(ctx, recarregarContexto) {
       </form>
 
       <section class="secao">
-        <h2>O que eu faço</h2>
+        <h2>Meus grupos e o que eu faço</h2>
         <p class="texto-fraco">O coordenador usa isso para montar a escala. Toque para marcar ou desmarcar.</p>
         ${ctx.vinculos.length ? ctx.vinculos.map((v) => `
           <div class="card">

@@ -41,9 +41,13 @@ Ferramentas de gestão costumam ser caras e feitas para grandes organizações. 
 ## ✨ Funcionalidades
 
 **Escalas**
+- **A escala do mês no Início**, em tabela, como a imagem que o grupo mandava no WhatsApp, com o seu nome em destaque
+- **Nova escala avulsa, semanal ou mensal**: as datas já aparecem, é só ajustar e criar
+- **Uma tela por função**: cada papel vê só o que usa, e o perfil abre pelo avatar
+- **Permissões no perfil do membro**: a coordenação libera quem pode montar escalas ou repertórios
 - **Calendário pessoal**: o mês com tudo marcado (escalado, datas abertas, “posso” marcado) e a lista de todas as escalas
 - **Disponibilidade**: o membro marca as datas em que pode, em vez de ser cobrado um por um
-- **Escala do mês**: abra todos os domingos (ou qualquer dia da semana) de uma vez e publique o mês inteiro
+- **Publicar o mês inteiro** de uma vez, ou enviar antes a prévia
 - **Montar a escala em 3 passos**: quem vai, o que cada um faz e revisar
 - **Várias funções por pessoa** na mesma data, como tocar e cantar
 - **Prévia**: a equipe confere a escala e confirma ou pede ajuste antes de publicar
@@ -128,7 +132,7 @@ cp .env.example .env   # preencha com a URL e a chave publishable do Supabase
 npm run dev
 ```
 
-**Banco de dados:** crie um projeto no [Supabase](https://supabase.com) e rode [`supabase/schema.sql`](supabase/schema.sql) no **SQL Editor**. Para dados de teste, rode também [`supabase/seed-teste.sql`](supabase/seed-teste.sql). Quem já tem dados roda só as migrações que faltam, que não apagam nada: [`migracao-v3.sql`](supabase/migracao-v3.sql) (v2 → v3), [`migracao-v4.sql`](supabase/migracao-v4.sql) (v3 → v4) e [`migracao-v5.sql`](supabase/migracao-v5.sql) (lembrete na véspera, depois de publicar a função).
+**Banco de dados:** crie um projeto no [Supabase](https://supabase.com) e rode [`supabase/schema.sql`](supabase/schema.sql) no **SQL Editor**. Para dados de teste, rode também [`supabase/seed-teste.sql`](supabase/seed-teste.sql). Quem já tem dados roda só as migrações que faltam, que não apagam nada: [`migracao-v3.sql`](supabase/migracao-v3.sql) (v2 → v3), [`migracao-v4.sql`](supabase/migracao-v4.sql) (v3 → v4), [`migracao-v5.sql`](supabase/migracao-v5.sql) (lembrete na véspera, depois de publicar a função) e [`migracao-v6.sql`](supabase/migracao-v6.sql) (permissão de montar escalas).
 
 **Notificações (opcional):** gere as chaves com `npx web-push generate-vapid-keys`, coloque a pública em `VITE_VAPID_PUBLIC_KEY` no `.env`, cadastre `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY` e `VAPID_SUBJECT` nos *secrets* das Edge Functions do Supabase e publique a função [`supabase/functions/notificar`](supabase/functions/notificar/index.ts) com *Verify JWT* desligado (ela confere o login sozinha). Sem isso, o app funciona normalmente, só sem os avisos.
 
@@ -158,7 +162,7 @@ Circlle/
 - [x] Protótipo navegável
 - [x] Projeto Vite + PWA, publicado no Netlify
 - [x] Banco com Row Level Security
-- [x] Documentação v4
+- [x] Documentação v6
 
 **Etapa 1: MVP**
 - [x] Solicitação e aprovação de organização
@@ -171,6 +175,7 @@ Circlle/
 - [x] Notificações push
 - [x] Nomes do grupo, departamentos desativados e WhatsApp
 - [x] Lembrete na véspera
+- [x] Uma tela por função: escala do mês no Início, aba Escalas (avulsa, semanal, mensal) e permissões no perfil do membro
 
 **Etapa 2**
 - [ ] Sugestão automática de escala
@@ -185,7 +190,7 @@ Circlle/
 
 ## 👤 Autor
 
-**Rafael Mestre A. Araujo**: estudante de Análise e Desenvolvimento de Sistemas (PUC Minas), coordenador de escalas de música voluntária e fundador da **Codemancer Studio**.
+**Rafael Mestre A. Araujo**: estudante de Análise e Desenvolvimento de Sistemas (PUC Minas), coordenador de escalas de música voluntária e fundador da **Cappstone Studio**.
 
 - GitHub: [@rafaelmestre](https://github.com/rafaelmestre)
-- Instagram: [@codemancerstudio](https://instagram.com/codemancerstudio)
+- Instagram: [@cappstonestudio](https://instagram.com/cappstonestudio)

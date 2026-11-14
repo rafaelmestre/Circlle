@@ -1,34 +1,15 @@
 import { supabase } from '../lib/supabase.js';
 import { notificar } from '../lib/notificacoes.js';
-import {
-  escapar, iniciais, formatarData, diaMes, casca, icone, botaoVoltar, vazio, aviso, traduzirErro, comBotao, STATUS_EVENTO,
-  termos, linkWhats, textoEscala
-} from '../lib/ui.js';
+import { escapar, iniciais, casca, icone, botaoVoltar, vazio, aviso, traduzirErro, comBotao, termos } from '../lib/ui.js';
 
 
-const fmtMes = new Intl.DateTimeFormat('pt-BR', { month: 'long', year: 'numeric' });
-
-// Agrupa as datas por mês: [["Dezembro de 2026", [...]], ...]
-function meses(eventos) {
-  const grupos = new Map();
-  for (const e of eventos) {
-    const nome = fmtMes.format(new Date(e.inicio));
-    const chave = nome.charAt(0).toUpperCase() + nome.slice(1);
-    if (!grupos.has(chave)) grupos.set(chave, []);
-    grupos.get(chave).push(e);
-  }
-  return [...grupos.entries()];
-}
-
-// Painel do coordenador (RF11, RF12, RF14–RF16, RF34)
+// Equipe do departamento: código, pedidos, membros e ajustes (RF11, RF12, RF14–RF16)
 export async function telaDepartamento(ctx, depId, recarregarContexto) {
-  const [depRes, membrosRes, funcoesRes, mfRes, eventosRes] = await Promise.all([
+  const [depRes, membrosRes, funcoesRes, mfRes] = await Promise.all([
     supabase.from('departamentos').select('id, nome, codigo, ativo, modulo_repertorio, organizacao_id, organizacoes(nome, termo_departamento, termo_evento, termo_funcao)').eq('id', depId).maybeSingle(),
-    supabase.from('membros_departamento').select('usuario_id, papel, perm_repertorio, status, perfis(nome)').eq('departamento_id', depId).order('created_at'),
+    supabase.from('membros_departamento').select('usuario_id, papel, perm_repertorio, perm_escala, status, perfis(nome)').eq('departamento_id', depId).order('created_at'),
     supabase.from('funcoes').select('id, nome').eq('departamento_id', depId).order('nome'),
-    supabase.from('membro_funcoes').select('usuario_id, funcao_id').eq('departamento_id', depId),
-    supabase.from('eventos').select('id, titulo, local, inicio, status, disponibilidades(count), escalas(count)')
-      .eq('departamento_id', depId).gte('inicio', new Date(Date.now() - 86400000).toISOString()).order('inicio')
+    supabase.from('membro_funcoes').select('usuario_id, funcao_id').eq('departamento_id', depId)
   ]);
 
   const dep = depRes.data;
@@ -46,15 +27,14 @@ export async function telaDepartamento(ctx, depId, recarregarContexto) {
   const membros = membrosRes.data ?? [];
   const pendentes = membros.filter((m) => m.status === 'pendente');
   const ativos = membros.filter((m) => m.status === 'ativo');
-  const eventos = eventosRes.data ?? [];
   const textoConvite = `Entre em ${dep.nome} (${dep.organizacoes.nome}) pelo app Circlle: ${location.origin} — código ${dep.codigo}`;
 
-  casca(ctx, 'inicio', `
+  casca(ctx, ctx.depsEscala.some((d) => d.id === dep.id) ? 'escalas' : 'org', `
     <main class="tela tela--com-nav">
-      ${botaoVoltar('#/')}
+      ${botaoVoltar(admin && !ctx.depsEscala.some((d) => d.id === dep.id) ? `#/org/${dep.organizacao_id}` : `#/escalas/${dep.id}`)}
       <div class="titulo">
-        <p class="passo">${escapar(dep.organizacoes.nome)}</p>
-        <h1>${escapar(dep.nome)}</h1>
+        <p class="passo">${escapar(dep.nome)}</p>
+        <h1>Equipe e ajustes</h1>
       </div>
 
       ${dep.ativo ? '' : `
@@ -97,83 +77,24 @@ export async function telaDepartamento(ctx, depId, recarregarContexto) {
         </section>` : ''}
 
       <section class="secao">
-        <div class="secao__cab">
-          <h2>Datas</h2>
-          <a class="btn btn-primary btn-sm" href="#/dep/${dep.id}/datas">${icone.mais()} Abrir datas</a>
-        </div>
-        ${eventos.length ? meses(eventos).map(([nomeMes, lista]) => {
-          const comEscala = lista.filter((e) => (e.escalas?.[0]?.count ?? 0) > 0);
-          const paraPrevia = comEscala.filter((e) => ['rascunho', 'aberto'].includes(e.status));
-          const paraPublicar = comEscala.filter((e) => ['rascunho', 'aberto', 'previa'].includes(e.status));
-          const abertas = lista.filter((e) => e.status === 'aberto');
-          const enviadas = lista.filter((e) => ['previa', 'publicado'].includes(e.status));
-          return `
-            <div class="mes-bloco" data-mes="${escapar(nomeMes)}">
-              <div class="mes-bloco__cab">
-                <h3>${escapar(nomeMes)}</h3>
-                <span class="texto-fraco">${lista.length} ${lista.length === 1 ? 'data' : 'datas'} · ${comEscala.length} com escala</span>
-              </div>
-              <div class="lista">
-                ${lista.map((e) => {
-                  const { dia, mes } = diaMes(e.inicio);
-                  const [rotulo, classe] = STATUS_EVENTO[e.status];
-                  const disp = e.disponibilidades?.[0]?.count ?? 0;
-                  const esc = e.escalas?.[0]?.count ?? 0;
-                  return `
-                    <a class="lista__item lista__item--link" href="#/evento/${e.id}">
-                      <div class="data">
-                        <div class="data__dia"><strong>${dia}</strong><span>${escapar(mes)}</span></div>
-                        <div class="data__info">
-                          <strong>${escapar(e.titulo)}</strong>
-                          <span>${escapar(formatarData(e.inicio).split(' · ')[1])} · ${disp} ${disp === 1 ? 'disponível' : 'disponíveis'} · ${esc} ${esc === 1 ? 'escalado' : 'escalados'}</span>
-                        </div>
-                        <span class="badge ${classe}">${rotulo}</span>
-                      </div>
-                    </a>`;
-                }).join('')}
-              </div>
-              ${paraPrevia.length || paraPublicar.length ? `
-                <div class="acoes acoes--linha">
-                  ${paraPrevia.length ? `<button class="btn btn-ghost btn-sm" data-lote="previa" data-ids="${paraPrevia.map((e) => e.id).join(',')}">
-                    Enviar prévia do mês (${paraPrevia.length})</button>` : ''}
-                  <button class="btn btn-primary btn-sm" data-lote="publicado" data-ids="${paraPublicar.map((e) => e.id).join(',')}">
-                    Publicar o mês (${paraPublicar.length})</button>
-                </div>` : ''}
-              ${abertas.length || enviadas.length ? `
-                <div class="compartilhar">
-                  <span class="compartilhar__rotulo">${icone.whats(16)} Mandar no grupo:</span>
-                  ${abertas.length ? `<button class="link-botao" data-whats="datas" data-ids="${abertas.map((e) => e.id).join(',')}">datas para marcar</button>` : ''}
-                  ${enviadas.length ? `<button class="link-botao" data-whats="escala" data-ids="${enviadas.map((e) => e.id).join(',')}">escala do mês</button>` : ''}
-                </div>` : ''}
-            </div>`;
-        }).join('') : vazio('Nenhuma data aberta. Abra as datas do mês para os membros marcarem em quais podem.')}
-      </section>
-
-      <section class="secao">
         <h2>Membros <span class="contador">${ativos.length}</span></h2>
         <div class="lista">
           ${ativos.length ? ativos.map((m) => {
-            const coord = m.papel === 'coordenador';
             const nomes = [...(funcoesDe[m.usuario_id] ?? [])].map((id) => nomeFuncao[id]).filter(Boolean).join(', ');
+            const selos = [
+              m.papel === 'coordenador' ? '<span class="badge badge--reassign">Coordenador</span>' : '',
+              m.papel !== 'coordenador' && m.perm_escala ? '<span class="badge badge--confirmed">Escalas</span>' : '',
+              m.papel !== 'coordenador' && dep.modulo_repertorio && m.perm_repertorio ? '<span class="badge badge--confirmed">Repertório</span>' : ''
+            ].join('');
             return `
-              <div class="lista__item membro" data-usuario="${m.usuario_id}">
+              <a class="lista__item lista__item--link" href="#/dep/${dep.id}/membro/${m.usuario_id}">
                 <span class="avatar" aria-hidden="true">${escapar(iniciais(m.perfis?.nome))}</span>
                 <span class="lista__texto">
                   <strong>${escapar(m.perfis?.nome ?? 'Sem nome')}${m.usuario_id === ctx.usuario.id ? ' (você)' : ''}</strong>
                   <small>${escapar(nomes || 'Sem função marcada')}</small>
                 </span>
-                <span class="membro__acoes">
-                  ${coord ? '<span class="badge badge--reassign">Coordenador</span>' : ''}
-                  ${dep.modulo_repertorio && !coord ? `
-                    <button class="chip chip--mini" data-acao="repertorio" aria-pressed="${m.perm_repertorio}">Repertório</button>` : ''}
-                  ${admin && m.usuario_id !== ctx.usuario.id ? `
-                    <button class="chip chip--mini" data-acao="coordenador" aria-pressed="${coord}">
-                      ${coord ? 'Tirar coordenação' : 'Tornar coordenador'}
-                    </button>` : ''}
-                  ${m.usuario_id !== ctx.usuario.id && (!coord || admin) ? `
-                    <button class="chip chip--mini chip--perigo" data-acao="remover" aria-label="Remover ${escapar(m.perfis?.nome)}">Remover</button>` : ''}
-                </span>
-              </div>`;
+                ${selos}${icone.seta()}
+              </a>`;
           }).join('') : vazio('Ninguém aprovado ainda. Mande o código pelo WhatsApp.')}
         </div>
       </section>
@@ -269,52 +190,6 @@ export async function telaDepartamento(ctx, depId, recarregarContexto) {
     recarregarContexto();
   });
 
-  // WhatsApp: datas para marcar ou escala do mês (RF32)
-  document.querySelectorAll('[data-whats]').forEach((b) =>
-    b.addEventListener('click', async () => {
-      const ids = b.dataset.ids.split(',');
-      const mes = b.closest('[data-mes]').dataset.mes;
-      // Abre a janela antes da consulta para o navegador não bloquear
-      const janela = window.open('', '_blank');
-      let texto;
-      if (b.dataset.whats === 'datas') {
-        const lista = eventos.filter((e) => ids.includes(e.id));
-        texto = [`*${dep.nome} · ${mes}*`, 'Marque no Circlle em quais datas você pode:', '',
-          ...lista.map((e) => `• ${formatarData(e.inicio)} — ${e.titulo}`), '', `${location.origin}/#/calendario`].join('\n');
-      } else {
-        const { data, error } = await supabase.from('escalas')
-          .select('evento_id, perfis(nome), escala_funcoes(funcoes(nome))').in('evento_id', ids);
-        if (error) {
-          janela?.close();
-          return aviso(traduzirErro(error));
-        }
-        const lista = eventos.filter((e) => ids.includes(e.id));
-        const blocos = lista.map((e) => textoEscala(e, null, (data ?? []).filter((s) => s.evento_id === e.id)));
-        texto = [`*Escala de ${dep.nome} · ${mes}*`, '', blocos.join('\n\n'), '',
-          `Confirme no Circlle: ${location.origin}/#/calendario`].join('\n');
-      }
-      if (janela) janela.location.href = linkWhats(texto);
-      else location.href = linkWhats(texto);
-    })
-  );
-
-  // Prévia ou publicação do mês inteiro
-  document.querySelectorAll('[data-lote]').forEach((botao) =>
-    botao.addEventListener('click', async () => {
-      const ids = botao.dataset.ids.split(',').filter(Boolean);
-      const status = botao.dataset.lote;
-      const texto = status === 'previa'
-        ? `Enviar a prévia de ${ids.length} ${ids.length === 1 ? 'data' : 'datas'}? A equipe vai poder conferir e pedir ajustes.`
-        : `Publicar ${ids.length} ${ids.length === 1 ? 'escala' : 'escalas'}? Só as datas que já têm gente escalada entram.`;
-      if (!confirm(texto)) return;
-      const { error } = await comBotao(botao, () => supabase.from('eventos').update({ status }).in('id', ids));
-      if (error) return aviso(traduzirErro(error));
-      notificar('escala', { eventos: ids });
-      aviso(status === 'previa' ? 'Prévia do mês enviada!' : 'Escalas do mês publicadas!');
-      recarregar();
-    })
-  );
-
   // Pedidos: ajustar funções e aprovar (RF14)
   document.querySelectorAll('.pedido').forEach((cartao) => {
     const usuario = cartao.dataset.usuario;
@@ -346,36 +221,6 @@ export async function telaDepartamento(ctx, depId, recarregarContexto) {
         supabase.from('membros_departamento').delete().eq('departamento_id', dep.id).eq('usuario_id', usuario));
       if (error) return aviso(traduzirErro(error));
       aviso('Pedido recusado.');
-      recarregar();
-    });
-  });
-
-  // Membros: repertório, coordenação e remoção (RF10, RF15, RF16)
-  document.querySelectorAll('.membro').forEach((linha) => {
-    const usuario = linha.dataset.usuario;
-    const atualizar = (dados) => supabase.from('membros_departamento').update(dados)
-      .eq('departamento_id', dep.id).eq('usuario_id', usuario);
-
-    linha.querySelector('[data-acao="repertorio"]')?.addEventListener('click', async (e) => {
-      const ativo = e.currentTarget.getAttribute('aria-pressed') === 'true';
-      const { error } = await comBotao(e.currentTarget, () => atualizar({ perm_repertorio: !ativo }));
-      if (error) return aviso(traduzirErro(error));
-      aviso(!ativo ? 'Permissão de repertório liberada.' : 'Permissão de repertório retirada.');
-      recarregar();
-    });
-    linha.querySelector('[data-acao="coordenador"]')?.addEventListener('click', async (e) => {
-      const coord = e.currentTarget.getAttribute('aria-pressed') === 'true';
-      const { error } = await comBotao(e.currentTarget, () => atualizar({ papel: coord ? 'membro' : 'coordenador' }));
-      if (error) return aviso(traduzirErro(error));
-      aviso(coord ? 'Coordenação retirada.' : 'Agora é coordenador!');
-      recarregar();
-    });
-    linha.querySelector('[data-acao="remover"]')?.addEventListener('click', async (e) => {
-      if (!confirm('Remover esta pessoa do departamento?')) return;
-      const { error } = await comBotao(e.currentTarget, () =>
-        supabase.from('membros_departamento').delete().eq('departamento_id', dep.id).eq('usuario_id', usuario));
-      if (error) return aviso(traduzirErro(error));
-      aviso('Membro removido.');
       recarregar();
     });
   });

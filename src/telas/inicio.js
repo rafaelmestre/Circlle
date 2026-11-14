@@ -1,12 +1,28 @@
 import { supabase } from '../lib/supabase.js';
-import { htmlPainelPlataforma } from './painelPlataforma.js';
 import { estadoNotificacoes, ativarNotificacoes } from '../lib/notificacoes.js';
-import { escapar, primeiroNome, iniciais, formatarData, diaMes, casca, icone, vazio, aviso, traduzirErro, comBotao, nomesFuncoes, termos } from '../lib/ui.js';
+import {
+  escapar, primeiroNome, formatarData, casca, icone, vazio, aviso, traduzirErro, comBotao, nomesFuncoes
+} from '../lib/ui.js';
 
-// Painel do membro (RF33): próxima escala, datas abertas e departamentos
+const CHAVE_DEP = 'circlle:inicio-dep';
+const CHAVE_CONVITE = 'circlle:convite-notificacoes';
+const fmtMes = new Intl.DateTimeFormat('pt-BR', { month: 'long', year: 'numeric' });
+const fmtSemana = new Intl.DateTimeFormat('pt-BR', { weekday: 'short' });
+const fmtHora = new Intl.DateTimeFormat('pt-BR', { hour: '2-digit', minute: '2-digit' });
+
+let mesVisto = null; // primeiro dia do mês mostrado na tabela
+
+const ler = (chave) => { try { return localStorage.getItem(chave); } catch { return null; } };
+const gravar = (chave, valor) => { try { localStorage.setItem(chave, valor); } catch { /* sem armazenamento */ } };
+// "novembro" no ano atual, "janeiro de 2027" nos outros
+const tituloMes = (d) => (d.getFullYear() === new Date().getFullYear()
+  ? d.toLocaleDateString('pt-BR', { month: 'long' }) : fmtMes.format(d));
+
+// Início: a escala do mês, como a tabela que o grupo mandava no WhatsApp (RF33)
 export async function telaInicio(ctx) {
   const agora = new Date().toISOString();
   const depsAtivos = ctx.ativos.map((v) => v.departamento_id);
+  mesVisto ??= new Date(new Date().getFullYear(), new Date().getMonth(), 1);
 
   const [escalasRes, abertosRes, dispRes] = await Promise.all([
     supabase.from('escalas')
@@ -15,24 +31,22 @@ export async function telaInicio(ctx) {
       .in('eventos.status', ['previa', 'publicado'])
       .gte('eventos.inicio', agora),
     depsAtivos.length
-      ? supabase.from('eventos')
-          .select('id, titulo, local, inicio, departamento_id, departamentos(nome)')
-          .in('departamento_id', depsAtivos)
-          .eq('status', 'aberto')
-          .gte('inicio', agora)
-          .order('inicio')
+      ? supabase.from('eventos').select('id').in('departamento_id', depsAtivos).eq('status', 'aberto').gte('inicio', agora)
       : { data: [] },
     supabase.from('disponibilidades').select('evento_id').eq('usuario_id', ctx.usuario.id)
   ]);
 
-  const proximas = (escalasRes.data ?? [])
-    .sort((a, b) => a.eventos.inicio.localeCompare(b.eventos.inicio));
-  const abertos = abertosRes.data ?? [];
+  const proximas = (escalasRes.data ?? []).sort((a, b) => a.eventos.inicio.localeCompare(b.eventos.inicio));
   const marcados = new Set((dispRes.data ?? []).map((d) => d.evento_id));
+  const paraMarcar = (abertosRes.data ?? []).filter((e) => !marcados.has(e.id)).length;
   const pendentes = ctx.vinculos.filter((v) => v.status === 'pendente');
 
+  // Departamento da tabela: o último escolhido, ou o primeiro
+  const deps = ctx.ativos.map((v) => v.departamentos);
+  let depId = ler(CHAVE_DEP);
+  if (!deps.some((d) => d.id === depId)) depId = deps[0]?.id ?? null;
+
   const destaque = proximas[0];
-  const aguardando = proximas.filter((e) => e.resposta === 'pendente').length;
   const blocoDestaque = destaque ? `
     <section class="destaque">
       <span class="destaque__rotulo">
@@ -45,70 +59,18 @@ export async function telaInicio(ctx) {
         ${destaque.resposta === 'pendente'
           ? `<button class="btn btn-sm destaque__btn" id="confirmarProxima">${icone.check(16)} Confirmo</button>`
           : `<span class="destaque__estado">${destaque.resposta === 'confirmado' ? `${icone.check(16)} Você confirmou` : 'Você pediu ajuste'}</span>`}
-        <a class="btn btn-sm destaque__link" href="#/evento/${destaque.eventos.id}">Ver escala</a>
+        <a class="btn btn-sm destaque__link" href="#/evento/${destaque.eventos.id}">Ver detalhes</a>
       </div>
-    </section>` : depsAtivos.length ? `
-    <section class="card vazio-guia">
-      <h2 class="cartao__titulo">Você ainda não está em nenhuma escala</h2>
-      <p class="texto-fraco">Marque abaixo os dias em que você pode ir. O coordenador monta a escala com quem marcou, e ela aparece aqui.</p>
     </section>` : '';
 
-  const linhaEvento = (e, extra = '') => {
-    const { dia, mes } = diaMes(e.inicio);
-    return `
-      <div class="data">
-        <div class="data__dia"><strong>${dia}</strong><span>${escapar(mes)}</span></div>
-        <div class="data__info">
-          <strong>${escapar(e.titulo)}</strong>
-          <span>${escapar(formatarData(e.inicio).split(' · ')[1])} · ${escapar(e.departamentos?.nome ?? '')}${e.local ? ` · ${escapar(e.local)}` : ''}</span>
-        </div>
-        ${extra}
-      </div>`;
-  };
-
-  const meusDeps = ctx.vinculos.map((v) => {
-    const d = v.departamentos;
-    const coord = ctx.coordena(d.id, d.organizacao_id);
-    const rotulo = v.status === 'pendente' ? '<span class="badge badge--pending">Aguardando</span>'
-      : coord ? '<span class="badge badge--reassign">Coordenador</span>'
-      : v.perm_repertorio ? '<span class="badge badge--confirmed">Repertório</span>' : '';
-    const conteudo = `
-      <span class="avatar" aria-hidden="true">${escapar(iniciais(d.nome))}</span>
-      <span class="lista__texto"><strong>${escapar(d.nome)}</strong><small>${escapar(d.organizacoes.nome)}</small></span>
-      ${rotulo}`;
-    return coord
-      ? `<a class="lista__item lista__item--link" href="#/dep/${d.id}">${conteudo}${icone.seta()}</a>`
-      : `<div class="lista__item">${conteudo}</div>`;
-  });
-
-  // Admin sem vínculo direto: atalhos para os departamentos da organização
-  const ids = new Set(ctx.vinculos.map((v) => v.departamento_id));
-  let depsAdmin = [];
-  if (ctx.orgsAdmin.length) {
-    const { data } = await supabase.from('departamentos')
-      .select('id, nome, organizacoes(nome)')
-      .in('organizacao_id', ctx.orgsAdmin.map((o) => o.id))
-      .eq('ativo', true).order('nome');
-    depsAdmin = (data ?? []).filter((d) => !ids.has(d.id));
-  }
-
-  const painel = ctx.plataforma ? await htmlPainelPlataforma() : '';
-
-  // Se todos os vínculos são de um grupo só, usa as palavras dele (RF09)
-  const orgs = new Map([...ctx.vinculos.map((v) => v.departamentos.organizacoes), ...ctx.orgsAdmin].map((o) => [o.id, o]));
-  const t = termos(orgs.size === 1 ? [...orgs.values()][0] : null);
-
   // Convite para ligar as notificações (some quando a pessoa ativa ou dispensa)
-  const CHAVE_CONVITE = 'circlle:convite-notificacoes';
-  let dispensado = false;
-  try { dispensado = localStorage.getItem(CHAVE_CONVITE) === '1'; } catch { /* sem armazenamento */ }
-  const push = ctx.vinculos.length && !dispensado ? await estadoNotificacoes() : 'indisponivel';
+  const push = depsAtivos.length && ler(CHAVE_CONVITE) !== '1' ? await estadoNotificacoes() : 'indisponivel';
   const blocoPush = push === 'inativo' ? `
     <section class="card convite-push">
       <span class="icon-circle">${icone.sino()}</span>
       <div class="convite-push__texto">
         <strong>Receba os avisos no celular</strong>
-        <small>Prévia, escala publicada e datas abertas chegam na hora.</small>
+        <small>Prévia, escala publicada e lembrete na véspera.</small>
       </div>
       <div class="acoes acoes--linha">
         <button class="btn btn-ghost btn-sm" data-dispensar>Agora não</button>
@@ -119,7 +81,7 @@ export async function telaInicio(ctx) {
       <span class="icon-circle">${icone.sino()}</span>
       <div class="convite-push__texto">
         <strong>Quer os avisos no iPhone?</strong>
-        <small>Toque em <b>Compartilhar</b> e depois em <b>Adicionar à Tela de Início</b>. Abra o Circlle pelo ícone e ative as notificações no Perfil.</small>
+        <small>Toque em <b>Compartilhar</b> e depois em <b>Adicionar à Tela de Início</b>. Abra o Circlle pelo ícone e ative no Perfil.</small>
       </div>
       <div class="acoes acoes--linha">
         <button class="btn btn-ghost btn-sm" data-dispensar>Entendi</button>
@@ -136,62 +98,84 @@ export async function telaInicio(ctx) {
             <h1>${escapar(primeiroNome(ctx.perfil.nome))}</h1>
           </div>
         </div>
-        <a class="avatar avatar--link" href="#/perfil" aria-label="Meu perfil">${escapar(iniciais(ctx.perfil.nome))}</a>
       </header>
-
-      ${painel}
-
-      ${blocoDestaque}
-
-      ${blocoPush}
 
       ${pendentes.length ? `
         <p class="card aviso-card">Seu pedido para entrar em <strong>${pendentes.map((p) => escapar(p.departamentos.nome)).join(', ')}</strong>
-        está com o coordenador. Assim que ele aprovar, as datas aparecem aqui.</p>` : ''}
+        está com a coordenação. Assim que aprovarem, a escala aparece aqui.</p>` : ''}
 
-      ${proximas.length > 1 ? `
-        <a class="lista__item lista__item--link atalho-calendario" href="#/calendario">
-          <span class="icon-circle">${icone.calendario()}</span>
-          <span class="lista__texto">
-            <strong>Mais ${proximas.length - 1} ${proximas.length - 1 === 1 ? 'escala' : 'escalas'} pela frente</strong>
-            <small>${aguardando > (destaque.resposta === 'pendente' ? 1 : 0)
-              ? `${aguardando} ${aguardando === 1 ? 'espera' : 'esperam'} sua resposta · ver no calendário`
-              : 'Ver todas no calendário'}</small>
-          </span>
+      ${blocoDestaque}
+
+      ${deps.length ? `
+        <section class="secao escala-mes" aria-labelledby="tituloEscala">
+          ${deps.length > 1 ? `
+            <div class="chips chips--rolagem" role="group" aria-label="Departamento">
+              ${deps.map((d) => `
+                <button type="button" class="chip" data-dep="${d.id}" aria-pressed="${d.id === depId}">${escapar(d.nome)}</button>`).join('')}
+            </div>` : ''}
+          <div class="escala-mes__cab">
+            <button type="button" class="icone-botao" id="mesAnterior" aria-label="Mês anterior">${icone.anterior()}</button>
+            <div class="escala-mes__titulo">
+              <span class="escala-mes__dep" id="nomeDep"></span>
+              <h2 id="tituloEscala"></h2>
+            </div>
+            <button type="button" class="icone-botao" id="mesSeguinte" aria-label="Próximo mês">${icone.proximo()}</button>
+          </div>
+          <div id="tabelaMes" aria-live="polite"></div>
+        </section>` : pendentes.length ? '' : `
+        <section class="card vazio-guia">
+          <h2 class="cartao__titulo">Você ainda não está em nenhum grupo</h2>
+          <p class="texto-fraco">Peça o código para a coordenação e entre pelo seu perfil.</p>
+          <a class="btn btn-primary" href="#/entrar">${icone.mais()} Entrar com código</a>
+        </section>`}
+
+      ${paraMarcar ? `
+        <a class="lembrete-linha" href="#/calendario">
+          <span><strong>${paraMarcar}</strong> ${paraMarcar === 1 ? 'data esperando' : 'datas esperando'} você marcar se pode</span>
           ${icone.seta()}
         </a>` : ''}
 
-      ${depsAtivos.length ? `
-        <section class="secao">
-          <h2>Datas abertas</h2>
-          <p class="texto-fraco">Marque os dias em que você pode. O coordenador monta a escala a partir disso.</p>
-          <div class="lista">
-            ${abertos.length ? abertos.map((e) => {
-              const marcado = marcados.has(e.id);
-              return `<div class="lista__item">${linhaEvento(e, `
-                <button class="chip chip--posso" data-evento="${e.id}" aria-pressed="${marcado}">
-                  ${marcado ? `${icone.check(16)} Posso` : 'Posso'}
-                </button>`)}</div>`;
-            }).join('') : vazio('Nenhuma data aberta agora.')}
-          </div>
-        </section>` : ''}
-
-      <section class="secao">
-        <h2>Meus ${escapar(t.deps_)}</h2>
-        <div class="lista">
-          ${meusDeps.join('') || ''}
-          ${depsAdmin.map((d) => `
-            <a class="lista__item lista__item--link" href="#/dep/${d.id}">
-              <span class="avatar" aria-hidden="true">${escapar(iniciais(d.nome))}</span>
-              <span class="lista__texto"><strong>${escapar(d.nome)}</strong><small>${escapar(d.organizacoes.nome)}</small></span>
-              <span class="badge badge--reassign">Admin</span>${icone.seta()}
-            </a>`).join('')}
-          ${!meusDeps.length && !depsAdmin.length ? vazio('Nada por aqui ainda.') : ''}
-        </div>
-        <a class="btn btn-ghost" href="#/entrar">${icone.mais()} Entrar com código</a>
-      </section>
+      ${blocoPush}
     </main>`);
 
+  // ---------- Tabela do mês ----------
+  const caixa = document.querySelector('#tabelaMes');
+  const desenhar = async () => {
+    if (!caixa || !depId) return;
+    const dep = deps.find((d) => d.id === depId);
+    document.querySelector('#nomeDep').textContent = dep.nome;
+    document.querySelector('#tituloEscala').textContent = `Escala de ${tituloMes(mesVisto)}`;
+    caixa.innerHTML = '<p class="texto-fraco">Carregando…</p>';
+    const fim = new Date(mesVisto.getFullYear(), mesVisto.getMonth() + 1, 1);
+    const { data, error } = await supabase.from('eventos')
+      .select('id, titulo, inicio, status, escalas(usuario_id, perfis(nome), escala_funcoes(funcoes(id, nome)))')
+      .eq('departamento_id', depId).in('status', ['previa', 'publicado', 'realizado'])
+      .gte('inicio', mesVisto.toISOString()).lt('inicio', fim.toISOString()).order('inicio');
+    if (error) {
+      caixa.innerHTML = vazio(traduzirErro(error));
+      return;
+    }
+    caixa.innerHTML = tabelaDoMes(data ?? [], ctx.usuario.id, mesVisto);
+  };
+
+  document.querySelectorAll('[data-dep]').forEach((chip) =>
+    chip.addEventListener('click', () => {
+      depId = chip.dataset.dep;
+      gravar(CHAVE_DEP, depId);
+      document.querySelectorAll('[data-dep]').forEach((c) => c.setAttribute('aria-pressed', String(c === chip)));
+      desenhar();
+    }));
+  document.querySelector('#mesAnterior')?.addEventListener('click', () => {
+    mesVisto = new Date(mesVisto.getFullYear(), mesVisto.getMonth() - 1, 1);
+    desenhar();
+  });
+  document.querySelector('#mesSeguinte')?.addEventListener('click', () => {
+    mesVisto = new Date(mesVisto.getFullYear(), mesVisto.getMonth() + 1, 1);
+    desenhar();
+  });
+  desenhar();
+
+  // ---------- Ações ----------
   document.querySelector('#confirmarProxima')?.addEventListener('click', async (e) => {
     const { error } = await comBotao(e.currentTarget, () =>
       supabase.rpc('responder_escala', { p_evento: destaque.eventos.id, p_resposta: 'confirmado', p_motivo: null }));
@@ -201,7 +185,7 @@ export async function telaInicio(ctx) {
   });
 
   const fecharConvite = () => {
-    try { localStorage.setItem(CHAVE_CONVITE, '1'); } catch { /* sem armazenamento */ }
+    gravar(CHAVE_CONVITE, '1');
     document.querySelector('.convite-push')?.remove();
   };
   document.querySelector('[data-dispensar]')?.addEventListener('click', fecharConvite);
@@ -215,18 +199,64 @@ export async function telaInicio(ctx) {
     fecharConvite();
     aviso('Pronto! Você vai receber os avisos neste aparelho.');
   });
+}
 
-  // Marcar / desmarcar disponibilidade (RF19, RF20)
-  document.querySelectorAll('[data-evento]').forEach((botao) =>
-    botao.addEventListener('click', async () => {
-      const id = botao.dataset.evento;
-      const marcado = botao.getAttribute('aria-pressed') === 'true';
-      const { error } = await comBotao(botao, () => marcado
-        ? supabase.from('disponibilidades').delete().eq('evento_id', id).eq('usuario_id', ctx.usuario.id)
-        : supabase.from('disponibilidades').insert({ evento_id: id, usuario_id: ctx.usuario.id }));
-      if (error) return aviso(traduzirErro(error));
-      botao.setAttribute('aria-pressed', String(!marcado));
-      botao.innerHTML = !marcado ? `${icone.check(16)} Posso` : 'Posso';
-    })
-  );
+// Datas nas linhas, funções nas colunas, como a escala do mês que o grupo já conhece
+function tabelaDoMes(eventos, eu, mes) {
+  if (!eventos.length) {
+    return vazio(`Nenhuma escala de ${fmtMes.format(mes).split(' ')[0]} publicada ainda.`);
+  }
+
+  // Colunas: as funções usadas no mês, em ordem alfabética
+  const funcoes = new Map();
+  for (const e of eventos) {
+    for (const s of e.escalas ?? []) {
+      for (const f of s.escala_funcoes ?? []) if (f.funcoes) funcoes.set(f.funcoes.id, f.funcoes.nome);
+    }
+  }
+  const colunas = [...funcoes.entries()].sort((a, b) => a[1].localeCompare(b[1]));
+  const titulosDiferentes = new Set(eventos.map((e) => e.titulo)).size > 1;
+
+  const linha = (e) => {
+    const d = new Date(e.inicio);
+    const porFuncao = new Map(colunas.map(([id]) => [id, []]));
+    for (const s of e.escalas ?? []) {
+      for (const f of s.escala_funcoes ?? []) {
+        porFuncao.get(f.funcoes?.id)?.push({ nome: primeiroNome(s.perfis?.nome ?? ''), eu: s.usuario_id === eu });
+      }
+    }
+    const minha = (e.escalas ?? []).some((s) => s.usuario_id === eu);
+    return `
+      <tr class="${minha ? 'escala-tabela__minha' : ''}">
+        <th scope="row">
+          <a href="#/evento/${e.id}" class="escala-tabela__data">
+            <strong>${String(d.getDate()).padStart(2, '0')}</strong>
+            <span>${escapar(fmtSemana.format(d).replace('.', ''))} · ${escapar(fmtHora.format(d))}</span>
+            ${titulosDiferentes ? `<small>${escapar(e.titulo)}</small>` : ''}
+            ${e.status === 'previa' ? '<span class="badge badge--reassign">prévia</span>' : ''}
+          </a>
+        </th>
+        ${colunas.map(([id]) => {
+          const nomes = porFuncao.get(id);
+          return `<td>${nomes.length
+            ? nomes.map((p) => p.eu ? `<mark>${escapar(p.nome)}</mark>` : escapar(p.nome)).join('<br>')
+            : '<span class="escala-tabela__vazio" aria-label="ninguém">–</span>'}</td>`;
+        }).join('')}
+      </tr>`;
+  };
+
+  return `
+    <div class="tabela-rolagem escala-tabela__caixa">
+      <table class="escala-tabela">
+        <thead>
+          <tr>
+            <th scope="col">Data</th>
+            ${colunas.map(([, nome]) => `<th scope="col">${escapar(nome)}</th>`).join('')}
+          </tr>
+        </thead>
+        <tbody>${eventos.map(linha).join('')}</tbody>
+      </table>
+    </div>
+    ${colunas.length ? '' : '<p class="texto-fraco">As datas deste mês ainda não têm ninguém escalado.</p>'}
+    <p class="texto-fraco escala-tabela__legenda"><mark>Seu nome</mark> aparece em destaque. Toque na data para ver detalhes e confirmar.</p>`;
 }

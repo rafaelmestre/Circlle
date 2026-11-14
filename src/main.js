@@ -15,6 +15,10 @@ import { telaPerfil } from './telas/perfil.js';
 import { telaOrganizacao } from './telas/organizacao.js';
 import { telaPlataforma } from './telas/plataforma.js';
 import { telaCalendario } from './telas/calendario.js';
+import { telaEscalas } from './telas/escalas.js';
+import { telaMembro } from './telas/membro.js';
+import { telaRepertorios } from './telas/repertorios.js';
+import { telaDashboard } from './telas/painelPlataforma.js';
 
 let usuario = null;
 let ctx = null;
@@ -48,10 +52,11 @@ function telaFalha(mensagem) {
   app.querySelector('#sair').addEventListener('click', () => supabase.auth.signOut());
 }
 
-// Rotas: #/  #/calendario  #/entrar  #/solicitar  #/perfil  #/org/:id  #/dep/:id  #/dep/:id/datas  #/evento/:id  #/plataforma
+// Rotas: #/  #/calendario  #/escalas[/:dep[/nova]]  #/repertorios  #/entrar  #/solicitar  #/perfil
+//        #/org/:id  #/dep/:id  #/dep/:id/membro/:usuario  #/evento/:id  #/plataforma
 function rotear() {
   if (!usuario || !ctx) return;
-  const [rota, id, sub] = location.hash.replace(/^#\/?/, '').split('/');
+  const [rota, id, sub, extra] = location.hash.replace(/^#\/?/, '').split('/');
 
   // Telas que funcionam com ou sem vínculo
   if (rota === 'entrar') return telaEntrarCodigo(ctx, () => irPara('#/'));
@@ -65,8 +70,14 @@ function rotear() {
 
   window.scrollTo(0, 0);
   switch (rota) {
+    case 'escalas':
+      return sub === 'nova' ? telaNovasDatas(ctx, id) : telaEscalas(ctx, id);
+    case 'repertorios':
+      return telaRepertorios(ctx);
     case 'dep':
-      return sub === 'datas' ? telaNovasDatas(ctx, id) : telaDepartamento(ctx, id, atualizar);
+      if (sub === 'datas') return location.replace(`#/escalas/${id}/nova`);
+      if (sub === 'membro') return telaMembro(ctx, id, extra, atualizar);
+      return telaDepartamento(ctx, id, atualizar);
     case 'evento':
       return telaEvento(ctx, id);
     case 'calendario':
@@ -78,7 +89,7 @@ function rotear() {
     case 'plataforma':
       return telaPlataforma(ctx);
     default:
-      return telaInicio(ctx);
+      return ctx.plataforma ? telaDashboard(ctx) : telaInicio(ctx);
   }
 }
 

@@ -24,13 +24,8 @@ export async function telaCalendario(ctx) {
   const eu = ctx.usuario.id;
   const depsAtivos = ctx.ativos.map((v) => v.departamento_id);
 
-  // Departamentos que a pessoa coordena (ou administra)
-  const coordena = new Set(ctx.ativos.filter((v) => v.papel === 'coordenador').map((v) => v.departamento_id));
-  if (ctx.orgsAdmin.length) {
-    const { data } = await supabase.from('departamentos').select('id')
-      .in('organizacao_id', ctx.orgsAdmin.map((o) => o.id)).eq('ativo', true);
-    for (const d of data ?? []) coordena.add(d.id);
-  }
+  // Departamentos em que a pessoa monta escalas (coordena, administra ou tem a permissão)
+  const coordena = new Set(ctx.depsEscala.map((d) => d.id));
 
   const [minhasRes, abertosRes, dispRes, coordRes] = await Promise.all([
     supabase.from('escalas')
@@ -89,7 +84,7 @@ export async function telaCalendario(ctx) {
   const descreverDia = (itens) => itens.map((i) => {
     if (i.tipo === 'escalado') return `escalado em ${i.ev.titulo}`;
     if (i.tipo === 'aberto') return marcados.has(i.ev.id) ? `marcou que pode em ${i.ev.titulo}` : `${i.ev.titulo} aberta para marcar`;
-    return `${i.ev.titulo}, que você coordena`;
+    return `${i.ev.titulo}, que você organiza`;
   }).join('; ');
 
   const itemDia = (i) => {
@@ -132,7 +127,7 @@ export async function telaCalendario(ctx) {
         <span class="evento-dia__hora">${hora}</span>
         <span class="lista__texto">
           <strong>${escapar(i.ev.titulo)}</strong>
-          <small>Você coordena · ${escapar(dep)} · ${disp} ${disp === 1 ? 'disponível' : 'disponíveis'} · ${esc} ${esc === 1 ? 'escalado' : 'escalados'}</small>
+          <small>Você organiza · ${escapar(dep)} · ${disp} ${disp === 1 ? 'disponível' : 'disponíveis'} · ${esc} ${esc === 1 ? 'escalado' : 'escalados'}</small>
           <span class="evento-dia__badges"><span class="badge ${classe}">${rotulo}</span></span>
         </span>
         ${icone.seta()}
@@ -176,7 +171,7 @@ export async function telaCalendario(ctx) {
           <li><span class="marca marca--escalado"></span> Escalado</li>
           <li><span class="marca marca--aberto"></span> Aberta para marcar</li>
           <li><span class="marca marca--posso">${icone.check(10)}</span> Marquei “posso”</li>
-          ${coordena.size ? '<li><span class="marca marca--coord"></span> Eu coordeno</li>' : ''}
+          ${coordena.size ? '<li><span class="marca marca--coord"></span> Eu organizo</li>' : ''}
         </ul>
       </div>
 

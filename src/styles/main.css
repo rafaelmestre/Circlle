@@ -1617,3 +1617,125 @@ strong { font-weight: var(--font-weight-medium); }
 .desativado { display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); }
 .avatar--apagado { opacity: 0.5; }
 .field label .dica { margin-left: var(--space-1); font-weight: var(--font-weight-regular); }
+
+/* ==========================================================
+   v6 — Uma tela por função
+   ========================================================== */
+
+/* Perfil pelo avatar, no canto de todas as telas */
+.casca { position: relative; }
+.casca__perfil {
+  position: absolute;
+  top: calc(var(--space-5) + env(safe-area-inset-top, 0px));
+  right: max(var(--space-4), calc((100% - 560px) / 2 + var(--space-4)));
+  z-index: 5;
+  width: 40px;
+  height: 40px;
+}
+.titulo--topo { padding-right: 56px; }
+.topo { padding-right: 56px; min-height: 40px; }
+
+/* Lembrete de uma linha que leva para outra tela */
+.lembrete-linha {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  border-radius: 16px;
+  background: var(--accent-tint);
+  color: var(--text);
+  text-decoration: none;
+  font-size: var(--font-size-sm);
+}
+.lembrete-linha strong { color: var(--accent-text); font-weight: var(--font-weight-semibold); }
+
+/* Chips que rolam na horizontal (departamentos) */
+.chips--rolagem { flex-wrap: nowrap; overflow-x: auto; padding-bottom: 2px; scrollbar-width: none; }
+.chips--rolagem::-webkit-scrollbar { display: none; }
+.chips--rolagem .chip { flex-shrink: 0; text-decoration: none; }
+
+/* Escala do mês no Início */
+.escala-mes__cab {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--space-2);
+}
+.escala-mes__titulo { text-align: center; display: grid; gap: 2px; }
+.escala-mes__titulo h2 { margin: 0; font-size: 1.25rem; color: var(--text); }
+.escala-mes__dep {
+  font-size: var(--font-size-xs, 0.75rem);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.escala-tabela__caixa {
+  margin-top: var(--space-2);
+  border-radius: 16px;
+  background: var(--surface);
+}
+.escala-tabela {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: var(--font-size-sm);
+}
+.escala-tabela thead th {
+  padding: var(--space-3) var(--space-3);
+  font-size: 0.6875rem;
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  text-align: center;
+  white-space: nowrap;
+  border-bottom: 1px solid var(--border);
+}
+.escala-tabela td {
+  padding: var(--space-3) var(--space-2);
+  text-align: center;
+  white-space: nowrap;
+  line-height: 1.5;
+  border-bottom: 1px solid var(--border);
+}
+.escala-tabela tbody tr:last-child > * { border-bottom: 0; }
+/* Primeira coluna (data) fica parada ao rolar */
+.escala-tabela th:first-child {
+  position: sticky;
+  left: 0;
+  z-index: 1;
+  background: var(--surface);
+  text-align: left;
+}
+.escala-tabela tbody th { padding: var(--space-2) var(--space-3); border-bottom: 1px solid var(--border); font-weight: inherit; }
+.escala-tabela__data { display: grid; gap: 1px; color: var(--text); text-decoration: none; min-width: 76px; }
+.escala-tabela__data strong { font-size: 1.125rem; font-weight: var(--font-weight-semibold); line-height: 1.1; }
+.escala-tabela__data span, .escala-tabela__data small { font-size: 0.6875rem; color: var(--text-muted); }
+.escala-tabela__data .badge { justify-self: start; margin-top: 2px; }
+.escala-tabela mark {
+  padding: 1px 6px;
+  border-radius: 6px;
+  background: var(--accent-tint);
+  color: var(--accent-text);
+  font-weight: var(--font-weight-semibold);
+}
+.escala-tabela__minha th:first-child { box-shadow: inset 3px 0 0 var(--accent-text); }
+.escala-tabela__vazio { color: var(--text-muted); opacity: 0.6; }
+.escala-tabela__legenda { font-size: 0.75rem; }
+.escala-tabela__legenda mark { padding: 0 4px; border-radius: 4px; background: var(--accent-tint); color: var(--accent-text); }
+
+/* Escalas */
+.escalas__acoes { display: grid; gap: var(--space-2); }
+.escalas__acoes .btn { white-space: nowrap; }
+.escalas__acoes .contador { margin-left: var(--space-1); }
+.mes-bloco h2 { font-size: 1.0625rem; color: var(--text); }
+
+/* Dois campos lado a lado (horário e local) */
+.form-duas { display: grid; grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr); gap: var(--space-3); align-items: end; }
+.form-duas .field { margin: 0; }
+
+/* Em breve */
+.em-breve { display: grid; justify-items: center; text-align: center; gap: var(--space-3); padding: var(--space-6, 32px) var(--space-4); }
+.em-breve .icon-circle { width: 56px; height: 56px; color: var(--accent-text); background: var(--accent-tint); }

@@ -1,5 +1,5 @@
 import { supabase } from '../lib/supabase.js';
-import { escapar } from '../lib/ui.js';
+import { escapar, primeiroNome, casca } from '../lib/ui.js';
 
 const numero = new Intl.NumberFormat('pt-BR');
 const diaMesCurto = (iso) => new Date(iso).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', timeZone: 'UTC' });
@@ -51,10 +51,6 @@ export async function htmlPainelPlataforma() {
 
   return `
     <section class="secao painel">
-      <div class="secao__cab">
-        <h2>Painel do Circlle</h2>
-        <a class="link-sutil" href="#/plataforma">Ver grupos</a>
-      </div>
 
       <div class="kpis">
         ${tile('Grupos ativos', p.grupos.ativos,
@@ -103,4 +99,17 @@ export async function htmlPainelPlataforma() {
           </div>` : '<p class="vazio">Nenhum grupo ativo ainda.</p>'}
       </div>
     </section>`;
+}
+
+// Dashboard do dono da plataforma: só os números (RN14)
+export async function telaDashboard(ctx) {
+  const painel = await htmlPainelPlataforma();
+  casca(ctx, 'inicio', `
+    <main class="tela tela--com-nav">
+      <div class="titulo titulo--topo">
+        <p class="passo">Olá, ${escapar(primeiroNome(ctx.perfil.nome))}</p>
+        <h1>Dashboard</h1>
+      </div>
+      ${painel}
+    </main>`);
 }

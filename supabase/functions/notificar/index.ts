@@ -75,6 +75,17 @@ async function coordena(usuario: string, dep: Departamento) {
   return (await coordenadores(dep)).includes(usuario);
 }
 
+// Quem monta escalas: coordenação e membros com a permissão de escalas
+async function escaladores(dep: Departamento): Promise<string[]> {
+  const { data } = await banco.from('membros_departamento').select('usuario_id')
+    .eq('departamento_id', dep.id).eq('status', 'ativo').eq('perm_escala', true);
+  return [...new Set([...(await coordenadores(dep)), ...(data ?? []).map((m) => m.usuario_id)])];
+}
+
+async function podeEscalar(usuario: string, dep: Departamento) {
+  return (await escaladores(dep)).includes(usuario);
+}
+
 async function nomeDe(usuario: string) {
   const { data } = await banco.from('perfis').select('nome').eq('id', usuario).maybeSingle();
   return data?.nome ?? 'Alguém';
@@ -116,7 +127,7 @@ const tipos: Record<string, (eu: string, p: Pedido) => Promise<Plano>> = {
   async datas_abertas(eu, p) {
     if (!ehUuid(p.departamento_id)) throw new Error('Pedido inválido');
     const dep = await departamento(p.departamento_id);
-    if (!dep?.ativo || !(await coordena(eu, dep))) throw new Error('Sem permissão');
+    if (!dep?.ativo || !(await podeEscalar(eu, dep))) throw new Error('Sem permissão');
     const qtd = Math.max(1, Math.min(Number(p.quantidade) || 1, 99));
     const { data } = await banco.from('membros_departamento').select('usuario_id')
       .eq('departamento_id', dep.id).eq('status', 'ativo');
@@ -140,7 +151,7 @@ const tipos: Record<string, (eu: string, p: Pedido) => Promise<Plano>> = {
     if (!eventos?.length) return [];
 
     const dep = await departamento(eventos[0].departamento_id);
-    if (!dep || eventos.some((e) => e.departamento_id !== dep.id) || !(await coordena(eu, dep))) {
+    if (!dep || eventos.some((e) => e.departamento_id !== dep.id) || !(await podeEscalar(eu, dep))) {
       throw new Error('Sem permissão');
     }
 
@@ -183,7 +194,7 @@ const tipos: Record<string, (eu: string, p: Pedido) => Promise<Plano>> = {
       .select('id, titulo, inicio, status, departamento_id, escalas(usuario_id)').eq('id', p.evento_id).maybeSingle();
     if (!e) return [];
     const dep = await departamento(e.departamento_id);
-    if (!dep || !(await coordena(eu, dep))) throw new Error('Sem permissão');
+    if (!dep || !(await podeEscalar(eu, dep))) throw new Error('Sem permissão');
     if (!['previa', 'publicado'].includes(e.status)) return [];
     const naEscala = new Set((e.escalas ?? []).map((s) => s.usuario_id));
     return [[
@@ -242,7 +253,7 @@ const tipos: Record<string, (eu: string, p: Pedido) => Promise<Plano>> = {
     if (!dep) return [];
     const nome = await nomeDe(eu);
     return [[
-      (await coordenadores(dep)).filter((id) => id !== eu),
+      (await escaladores(dep)).filter((id) => id !== eu),
       {
         titulo: e.status === 'previa' ? `${nome} pediu ajuste` : `${nome} não vai poder`,
         corpo: `${e.titulo} · ${quando(e.inicio)}: “${String(s.motivo ?? '').slice(0, 120)}”`,

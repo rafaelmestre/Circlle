@@ -52,24 +52,57 @@ export async function telaPlataforma(ctx) {
       </article>`;
   };
 
+  const contar = (st) => orgs.filter((o) => o.status === st).length;
+  const filtros = [['todas', 'Todos', orgs.length], ['em_analise', 'Em análise', pendentes.length],
+    ['ativa', 'Ativos', contar('ativa')], ['suspensa', 'Suspensos', contar('suspensa')], ['recusada', 'Recusados', contar('recusada')]];
+
   casca(ctx, 'plataforma', `
     <main class="tela tela--com-nav">
-      <div class="titulo">
+      <div class="titulo titulo--topo">
         <p class="passo">Equipe Circlle</p>
-        <h1>Grupos</h1>
-        <p>${pendentes.length} ${pendentes.length === 1 ? 'solicitação' : 'solicitações'} em análise</p>
+        <h1>Assinantes</h1>
+        <p>${orgs.length} ${orgs.length === 1 ? 'grupo' : 'grupos'} · ${pendentes.length} em análise</p>
       </div>
 
-      <section class="secao">
-        <h2>Em análise</h2>
-        ${pendentes.map(cartao).join('') || vazio('Nenhuma solicitação nova.')}
-      </section>
+      <div class="field">
+        <label class="so-leitor" for="buscaOrg">Buscar assinante</label>
+        <input id="buscaOrg" type="search" placeholder="Buscar por nome, cidade ou responsável" />
+      </div>
+      <div class="chips" role="group" aria-label="Filtrar por situação">
+        ${filtros.map(([id, rotulo, n]) => `
+          <button type="button" class="chip" data-filtro="${id}" aria-pressed="${id === (pendentes.length ? 'em_analise' : 'todas')}">
+            ${rotulo} <span class="contador">${n}</span>
+          </button>`).join('')}
+      </div>
 
-      <section class="secao">
-        <h2>Todos os grupos</h2>
-        ${demais.map(cartao).join('') || vazio('Nenhum grupo ainda.')}
+      <section class="secao" id="listaOrgs">
+        ${[...pendentes, ...demais].map(cartao).join('') || vazio('Nenhum assinante ainda.')}
       </section>
+      <p class="vazio" id="semResultado" hidden>Nada encontrado com esse filtro.</p>
     </main>`);
+
+  // Filtro por situação e busca, sem nova consulta
+  const busca = document.querySelector('#buscaOrg');
+  const aplicar = () => {
+    const filtro = document.querySelector('[data-filtro][aria-pressed="true"]')?.dataset.filtro ?? 'todas';
+    const termo = busca.value.trim().toLowerCase();
+    let visiveis = 0;
+    document.querySelectorAll('#listaOrgs [data-org]').forEach((cartaoEl) => {
+      const o = orgs.find((x) => x.id === cartaoEl.dataset.org);
+      const texto = `${o.nome} ${o.cidade ?? ''} ${o.perfis?.nome ?? ''} ${o.tipo ?? ''}`.toLowerCase();
+      const ok = (filtro === 'todas' || o.status === filtro) && (!termo || texto.includes(termo));
+      cartaoEl.hidden = !ok;
+      if (ok) visiveis++;
+    });
+    document.querySelector('#semResultado').hidden = visiveis > 0 || !orgs.length;
+  };
+  document.querySelectorAll('[data-filtro]').forEach((chip) =>
+    chip.addEventListener('click', () => {
+      document.querySelectorAll('[data-filtro]').forEach((c) => c.setAttribute('aria-pressed', String(c === chip)));
+      aplicar();
+    }));
+  busca.addEventListener('input', aplicar);
+  aplicar();
 
   const textos = { ativa: 'aprovar/ativar', recusada: 'recusar', suspensa: 'suspender' };
   document.querySelectorAll('[data-status]').forEach((botao) =>
