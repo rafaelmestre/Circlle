@@ -1,7 +1,9 @@
 # Circlle — Documentação do Projeto
 
-*Um produto Cappstone Studio · versão 8 (nov/2026)*
+*Um produto Cappstone Studio · versão 9 (nov/2026)*
 
+> **O que mudou na v9:** o editor do repertório virou uma **playlist de verdade**: **segurar e arrastar** para mudar a ordem, **− / +** para mudar o tom de cada música e **deslizar para a esquerda** para tirar (como no WhatsApp). O mesmo gesto **exclui repertórios** na lista, com confirmação. O app instalado agora **se atualiza sozinho**, sem limpar cache nem reinstalar. A revisão está na seção 19.
+>
 > **O que mudou na v8:** **mural** do departamento (avisos com aviso no celular, fixar no topo, resumo no Início), **cifra própria** de cada música e **troca de tom** automática, com a tela da música abrindo já no tom do repertório. A revisão está na seção 18.
 >
 > **O que mudou na v7:** **repertórios** como uma playlist. Quem tem a permissão cria a lista, busca ou cadastra as músicas, acerta a ordem e o tom de cada uma e aplica numa data. A equipe vê o repertório na tela da data, com o link ou a busca da cifra no Cifra Club, e recebe um aviso quando ele chega numa escala já enviada. A revisão está na seção 17.
@@ -174,12 +176,14 @@ Todos os usuários de teste usam e-mails `@circlle.test` (ver `supabase/seed-tes
 
 - **RF27** Banco de músicas privado da organização: nome, artista, tom, link e cifra própria. A cifra aceita acordes entre colchetes no meio da letra (`[G]Numa folha`) ou numa linha só de acordes em cima da letra.
 - **RF28** Repertório como uma playlist do departamento: nome, músicas em ordem e tom de cada uma. Um repertório pode ser aplicado em várias datas (cada data usa um). Os escalados recebem um aviso quando o repertório chega numa escala já enviada.
+- **RF28.1** Editar o repertório como uma playlist: segurar a alça (⋮⋮) e arrastar para mudar a ordem, com as outras músicas abrindo espaço; − / + ao lado do tom sobem ou descem meio tom (ou digita-se o tom); deslizar a música para a esquerda mostra **Apagar**; tocar no nome abre a cifra no tom da lista. Tudo salva na hora, sem recarregar a tela.
+- **RF28.2** Na lista de repertórios, deslizar para a esquerda mostra **Excluir**, com confirmação.
 - **RF29** Troca de tom automática: a cifra abre no tom do repertório e muda com − / + ou escolhendo o tom; sustenidos ou bemóis conforme o tom. Atalho de busca no Cifra Club (ou o link cadastrado) quando ainda não há cifra.
 
 ### 7.7 Comunicação
 
 - **RF30** Mural do departamento: publica quem monta escalas ou repertórios; todos os membros leem e recebem o aviso no celular. Aviso pode ser fixado no topo. Cada um apaga o seu; a coordenação pode apagar qualquer um. O Início mostra os dois últimos.
-- **RF31** Notificações push, ligadas por aparelho no Perfil (ou pelo convite no Início): pedido de entrada, entrada aprovada, datas abertas, prévia enviada, escala publicada, escala alterada, pedido de ajuste. Lembrete na véspera: todo dia às 18h (Brasília) o servidor avisa quem está escalado para o dia seguinte, menos quem pediu ajuste. Fica para depois: repertório enviado.
+- **RF31** Notificações push, ligadas por aparelho no Perfil (ou pelo convite no Início): pedido de entrada, entrada aprovada, datas abertas, prévia enviada, escala publicada, escala alterada, pedido de ajuste, repertório numa escala já enviada e aviso novo no mural. Lembrete na véspera: todo dia às 18h (Brasília) o servidor avisa quem está escalado para o dia seguinte, menos quem pediu ajuste.
 - **RF32** Compartilhar no WhatsApp: código do departamento, escala de uma data, escala do mês e datas abertas para marcar.
 
 ### 7.8 Painéis
@@ -225,6 +229,7 @@ Todos os usuários de teste usam e-mails `@circlle.test` (ver `supabase/seed-tes
 - **RN20** As notificações saem do servidor, que confere se quem pediu o aviso tem direito (ex.: só quem monta escalas avisa sobre a escala do seu departamento).
 - **RN21** "Pode montar escalas" dá ao membro tudo o que o coordenador faz nas escalas daquele departamento (criar datas, montar, enviar prévia, publicar, editar e excluir datas), mas não aprova membros nem mexe em funções e ajustes. Só a coordenação liga ou desliga.
 - **RN22** A barra de baixo mostra só o que cada papel usa: membro (Início, Calendário); com repertório (+ Repertórios); quem monta escalas (+ Escalas); administrador do grupo (+ aba do grupo); dono da plataforma (Dashboard, Assinantes). O perfil abre pelo avatar, em qualquer tela.
+- **RN23** Tirar uma música do repertório não pede confirmação (ela continua no banco de músicas e volta com dois toques). Excluir um repertório pede confirmação e avisa quantas datas ficam sem repertório; as músicas continuam cadastradas.
 
 ---
 
@@ -256,18 +261,25 @@ O MVP está pronto quando, com os usuários de teste, for possível:
 - **RNF04** LGPD: termo de uso no cadastro e exclusão de conta pelo usuário.
 - **RNF05** Código do departamento sem caracteres ambíguos (sem 0/O, 1/I/L).
 - **RNF06** Custo de operação zero na fase inicial.
+- **RNF07** Atualização automática: o app instalado procura versão nova sempre que volta para a frente da tela (e a cada 30 minutos) e recarrega sozinho. Ninguém precisa limpar cache nem reinstalar.
+- **RNF08** Gestos com alternativa: a ordem também muda pelo teclado (setas na alça) e o botão de apagar aparece ao receber foco. Com "reduzir movimento" ligado no aparelho, as animações ficam instantâneas.
 
 ---
 
 ## 11. Etapas de entrega
 
 1. **Etapa 1 (MVP):** solicitação e aprovação de organização, papéis, departamentos com código, vínculo com funções, datas do mês, disponibilidade, escala em 3 passos com várias funções, prévia e respostas, publicação do mês, calendário pessoal, início do membro e notificações básicas.
-2. **Etapa 2:** sugestão automática, ensaios, repertório e mural.
-3. **Etapa 3:** desempenho, relatórios, sincronização de agenda e troca de tom.
+2. **Etapa 2:** repertório, mural, cifra e troca de tom (✅ feitos); sugestão automática e ensaios (próximos).
+3. **Etapa 3:** desempenho, relatórios e sincronização de agenda.
 
 ---
 
-## 12. Banco de dados (v8)
+## 12. Banco de dados (v9)
+
+**v9**
+
+- Sem mudança no banco: a ordem e o tom continuam em `repertorio_itens`. Nada para rodar no Supabase.
+
 
 **v8**
 
@@ -315,7 +327,7 @@ O MVP está pronto quando, com os usuários de teste, for possível:
 | Marca, logo, paleta e tokens | ✅ Pronto |
 | Protótipo navegável | ✅ Pronto (precisa trocar os termos religiosos) |
 | Projeto Vite + PWA, publicado no Netlify | ✅ Pronto |
-| Banco v4 com RLS | ✅ Pronto |
+| Banco v8 com RLS | ✅ Pronto |
 | Contratação, departamentos, código e aprovação | ✅ Pronto |
 | Datas do mês, disponibilidade e escala em 3 passos | ✅ Pronto |
 | Prévia, respostas e publicação do mês | ✅ Pronto |
@@ -323,7 +335,12 @@ O MVP está pronto quando, com os usuários de teste, for possível:
 | Painel do Circlle | ✅ Pronto |
 | Notificações push e lembrete na véspera | ✅ Pronto |
 | Rótulos, departamentos desativados e WhatsApp | ✅ Pronto |
-| Sugestão automática, ensaios, repertório e mural | ⏳ Etapa 2 |
+| Uma tela por função e permissões no perfil do membro | ✅ Pronto |
+| Repertório como playlist (arrastar, tom, deslizar para apagar) | ✅ Pronto |
+| Mural, cifra própria e troca de tom | ✅ Pronto |
+| Atualização automática do app instalado | ✅ Pronto |
+| Sugestão automática e ensaios | ⏳ Etapa 2 |
+| Desempenho, relatórios e agenda | ⏳ Etapa 3 |
 
 ---
 
@@ -394,3 +411,15 @@ O MVP está pronto quando, com os usuários de teste, for possível:
 | ✅ Feito | Troca de tom (RF29) | Abre no tom do repertório; − / + e escolha do tom |
 | ⏭️ Fica | Sugestão automática e ensaios | Próximas etapas |
 
+---
+
+## 19. Revisão de requisitos (v9)
+
+| | Requisito | O que aconteceu |
+|---|---|---|
+| ✅ Feito | Ordem do repertório (RF28.1) | Segurar e arrastar, com transição suave, no lugar das setas ↑ ↓ |
+| ✅ Feito | Tom por música (RF28.1) | − à esquerda e + à direita, meio tom por toque, salvando na hora |
+| ✅ Feito | Tirar música (RF28.1, RN23) | Deslizar para a esquerda mostra Apagar, no lugar do × |
+| ✅ Feito | Excluir repertório (RF28.2, RN23) | Mesmo gesto na lista de repertórios, com confirmação |
+| ✅ Feito | Atualização do app (RNF07) | O app instalado se atualiza sozinho ao voltar para a tela |
+| ⏭️ Fica | Sugestão automática e ensaios | Próximas etapas |

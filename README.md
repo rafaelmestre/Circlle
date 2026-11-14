@@ -57,6 +57,7 @@ Ferramentas de gestão costumam ser caras e feitas para grandes organizações. 
 
 **Repertório** (módulo opcional por departamento)
 - **Repertório como playlist**: músicas em ordem, com o tom de cada uma, aplicado nas datas da escala
+- **Editar como no app de música**: segure e arraste para mudar a ordem, − / + para o tom e deslize para o lado para tirar (como no WhatsApp)
 - Música, artista, tom e link num **banco privado** da organização, com busca rápida
 - **Cifra própria** com **troca de tom** automática, abrindo já no tom do repertório
 - Atalho para a cifra no Cifra Club quando ainda não há cifra cadastrada
@@ -146,7 +147,7 @@ Circlle/
 ├── vite.config.js        # Vite + PWA (manifest e service worker)
 ├── src/
 │   ├── main.js           # telas e roteamento pela sessão
-│   ├── lib/              # Supabase, contexto, interface e notificações
+│   ├── lib/              # Supabase, contexto, interface, notificações, tom, lista arrastável e atualização
 │   ├── telas/            # uma tela por arquivo
 │   └── styles/           # tokens.css (design) e main.css
 ├── public/               # favicon, ícones e push-sw.js (notificações)
@@ -164,7 +165,7 @@ Circlle/
 - [x] Protótipo navegável
 - [x] Projeto Vite + PWA, publicado no Netlify
 - [x] Banco com Row Level Security
-- [x] Documentação v8
+- [x] Documentação v9
 
 **Etapa 1: MVP**
 - [x] Solicitação e aprovação de organização
@@ -184,10 +185,12 @@ Circlle/
 - [ ] Ensaios
 - [x] Repertório como playlist, aplicado nas datas
 - [x] Mural, cifra própria e troca de tom
+- [x] Editor de repertório estilo playlist (arrastar, tom com − / +, deslizar para apagar)
+- [x] App instalado se atualiza sozinho
 
 **Etapa 3**
 - [ ] Desempenho e relatórios
-- [ ] Sincronização com agenda e troca de tom
+- [ ] Sincronização com agenda
 
 ---
 
