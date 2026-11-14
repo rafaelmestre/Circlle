@@ -22,6 +22,9 @@ import { telaRepertorio } from './telas/repertorio.js';
 import { telaMusica } from './telas/musica.js';
 import { telaMural } from './telas/mural.js';
 import { telaDashboard } from './telas/painelPlataforma.js';
+import { iniciarAtualizacao } from './lib/atualizacao.js';
+
+iniciarAtualizacao();
 
 let usuario = null;
 let ctx = null;
