@@ -35,6 +35,9 @@ let ctx = null;
 // Chegou pelo link de "esqueci minha senha": a tela de senha nova vem antes de tudo
 let recuperandoSenha = /type=recovery/.test(location.hash);
 
+// Endereços sem # (para o Google e links externos): /termos e /privacidade abrem os termos
+if (/^\/(termos|privacidade)\/?$/.test(location.pathname)) history.replaceState(null, '', '/#/termos');
+
 // Recarrega o que sabemos da pessoa e redesenha a tela atual
 async function atualizar() {
   carregando();

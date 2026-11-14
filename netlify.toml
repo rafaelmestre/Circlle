@@ -29,3 +29,14 @@
   for = "/assets/*"
   [headers.values]
     Cache-Control = "public, max-age=31536000, immutable"
+
+# Termos e privacidade com endereço próprio (o app troca para #/termos)
+[[redirects]]
+  from = "/termos"
+  to = "/index.html"
+  status = 200
+
+[[redirects]]
+  from = "/privacidade"
+  to = "/index.html"
+  status = 200
