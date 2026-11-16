@@ -16,7 +16,7 @@ export async function carregarContexto(usuario) {
       .order('created_at', { ascending: false }),
     supabase.from('membros_departamento')
       .select(`departamento_id, papel, perm_repertorio, perm_escala, status,
-               departamentos(id, nome, codigo, modulo_repertorio, organizacao_id, ativo,
+               departamentos(id, nome, codigo, modulo_repertorio, pedir_disponibilidade, organizacao_id, ativo,
                  organizacoes(id, nome, status, termo_organizacao, termo_departamento, termo_evento, termo_funcao))`)
       .eq('usuario_id', usuario.id)
       .order('created_at')
@@ -31,7 +31,7 @@ export async function carregarContexto(usuario) {
 
   // Departamentos das organizações que a pessoa administra
   const depsOrgRes = orgsAdmin.length
-    ? await supabase.from('departamentos').select('id, nome, organizacao_id, modulo_repertorio')
+    ? await supabase.from('departamentos').select('id, nome, organizacao_id, modulo_repertorio, pedir_disponibilidade')
         .in('organizacao_id', orgsAdmin.map((o) => o.id)).eq('ativo', true).order('nome')
     : { data: [] };
 
@@ -49,6 +49,7 @@ export async function carregarContexto(usuario) {
   for (const v of ativos) {
     const d = v.departamentos;
     porId.set(d.id, { id: d.id, nome: d.nome, organizacao_id: d.organizacao_id, modulo_repertorio: d.modulo_repertorio,
+      pedir_disponibilidade: d.pedir_disponibilidade,
       coordena: coordena(d.id, d.organizacao_id), escala: coordena(d.id, d.organizacao_id) || v.perm_escala,
       repertorio: d.modulo_repertorio && (coordena(d.id, d.organizacao_id) || v.perm_repertorio) });
   }

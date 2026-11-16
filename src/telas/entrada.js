@@ -39,9 +39,11 @@ export function telaEntrada(modo = rascunho.modo, temConvite = false) {
         <div>
           <img class="auth__logo" src="/favicon.svg" alt="" />
           <h1 class="auth__title"><span class="text-gradient">Circlle</span></h1>
-          <p class="auth__subtitle">${temConvite
-            ? 'Você recebeu um convite! Entre ou crie sua conta para participar.'
-            : 'Sua equipe no mesmo ritmo.'}</p>
+          ${temConvite?.titulo
+            ? `<div class="auth__convite"><strong>${escapar(temConvite.titulo)}</strong><span>${escapar(temConvite.texto)}</span></div>`
+            : `<p class="auth__subtitle">${temConvite
+                ? 'Você recebeu um convite! Entre ou crie sua conta para participar.'
+                : 'Escalas, repertório e avisos da sua banda no mesmo lugar.'}</p>`}
         </div>
 
         <div class="tabs" role="tablist">

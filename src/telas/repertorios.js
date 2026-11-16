@@ -35,7 +35,7 @@ export async function telaRepertorios(ctx, depParam) {
       </div>
 
       ${deps.length > 1 ? `
-        <div class="chips chips--rolagem" role="group" aria-label="Departamento">
+        <div class="chips chips--rolagem" role="group" aria-label="Grupo">
           ${deps.map((d) => `
             <a class="chip" href="#/repertorios/${d.id}" aria-pressed="${d.id === dep.id}">${escapar(d.nome)}</a>`).join('')}
         </div>` : ''}

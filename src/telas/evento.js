@@ -5,6 +5,7 @@ import {
   nomesFuncoes, badgeResposta, STATUS_EVENTO, linkWhats, textoEscala
 } from '../lib/ui.js';
 import { blocoRepertorio } from '../lib/repertorio.js';
+import { formAdicionarPessoa, ligarAdicionarPessoa } from '../lib/pessoaSemConta.js';
 
 // Repertório aplicado à data, com as músicas em ordem
 const SEL_REPERTORIO = 'repertorios(id, nome, repertorio_itens(ordem, tom, observacao, musica_id, musicas(id, titulo, artista, tom, link)))';
@@ -13,7 +14,7 @@ const SEL_REPERTORIO = 'repertorios(id, nome, repertorio_itens(ordem, tom, obser
 // o membro vê a prévia ou a escala publicada e responde.
 export async function telaEvento(ctx, eventoId) {
   const { data: ev } = await supabase.from('eventos')
-    .select(`id, titulo, local, inicio, status, departamento_id, repertorio_id, departamentos(id, nome, organizacao_id), ${SEL_REPERTORIO}`)
+    .select(`id, titulo, local, inicio, status, departamento_id, repertorio_id, departamentos(id, nome, organizacao_id, pedir_disponibilidade), ${SEL_REPERTORIO}`)
     .eq('id', eventoId).maybeSingle();
   if (!ev) {
     location.hash = '#/';
@@ -195,7 +196,7 @@ async function verEscala(ctx, ev, dep) {
 // ==========================================================
 async function montarEscala(ctx, ev, dep) {
   const [membrosRes, mfRes, funcoesRes, dispRes, escRes] = await Promise.all([
-    supabase.from('membros_departamento').select('usuario_id, perfis(nome, apelido, avatar_url)')
+    supabase.from('membros_departamento').select('usuario_id, perfis(nome, apelido, avatar_url, provisorio)')
       .eq('departamento_id', dep.id).eq('status', 'ativo'),
     supabase.from('membro_funcoes').select('usuario_id, funcao_id').eq('departamento_id', dep.id),
     supabase.from('funcoes').select('id, nome').eq('departamento_id', dep.id).order('nome'),
@@ -215,12 +216,14 @@ async function montarEscala(ctx, ev, dep) {
       id: m.usuario_id,
       nome: m.perfis?.nome ?? 'Sem nome',
       avatar_url: m.perfis?.avatar_url ?? null,
+      provisorio: Boolean(m.perfis?.provisorio),
       disponivel: disponiveis.has(m.usuario_id),
       funcoes: (funcoesDe[m.usuario_id] ?? []).filter((id) => nomeFuncao[id])
         .sort((a, b) => nomeFuncao[a].localeCompare(nomeFuncao[b]))
     }))
     .sort((a, b) => a.nome.localeCompare(b.nome));
   const pessoa = Object.fromEntries(pessoas.map((p) => [p.id, p]));
+  const pedirDisp = Boolean(dep.pedir_disponibilidade);
 
   // Quem está escalado e em quais funções (começa com a escala salva)
   const escolha = new Map();
@@ -244,34 +247,50 @@ async function montarEscala(ctx, ev, dep) {
   const nomesDe = (ids) => [...ids].map((id) => nomeFuncao[id]).filter(Boolean).sort().join(', ');
 
   // ---------- Passo 1: quem vai ----------
+  // Escala livre (padrão): todo mundo numa lista só, com "marcou que pode" como dica.
+  // Com "pedir disponibilidade": quem marcou primeiro; os outros ainda podem entrar, com aviso.
   const passo1 = () => {
-    const cartao = (p) => `
-      <button type="button" class="pessoa-opcao" data-pessoa="${p.id}" aria-pressed="${escolha.has(p.id)}">
+    const cartao = (p, alerta = false) => `
+      <button type="button" class="pessoa-opcao ${alerta ? 'pessoa-opcao--alerta' : ''}" data-pessoa="${p.id}" aria-pressed="${escolha.has(p.id)}">
         ${avatar(p)}
         <span class="lista__texto">
           <strong>${escapar(p.nome)}</strong>
           <small>${escapar(nomesDe(p.funcoes) || 'Sem função marcada')}</small>
         </span>
+        ${p.provisorio ? '<span class="badge badge--pending">Sem conta</span>' : ''}
+        ${!pedirDisp && p.disponivel ? '<span class="badge badge--confirmed">Pode</span>' : ''}
         <span class="pessoa-opcao__marca" aria-hidden="true">${icone.check(16)}</span>
       </button>`;
+    const adicionar = formAdicionarPessoa(funcoes, { rotulo: '+ Escalar alguém que não está no app' });
+
+    if (!pedirDisp) {
+      return `
+        <div class="passo-cab">
+          <h2>Quem vai nessa data?</h2>
+          <p class="texto-fraco">Toque para escolher.${pessoas.some((p) => p.disponivel) ? ' Quem marcou que pode aparece com <strong>Pode</strong>.' : ''}</p>
+        </div>
+        <div class="lista">${pessoas.map((p) => cartao(p)).join('') || vazio('Ninguém no grupo ainda.')}</div>
+        ${adicionar}`;
+    }
+
     const disp = pessoas.filter((p) => p.disponivel);
     const outros = pessoas.filter((p) => !p.disponivel);
     const outrosEscolhidos = outros.some((p) => escolha.has(p.id));
-
     return `
       <div class="passo-cab">
         <h2>Quem vai nessa data?</h2>
         <p class="texto-fraco">${disp.length
           ? `<strong>${disp.length}</strong> ${disp.length === 1 ? 'pessoa marcou' : 'pessoas marcaram'} que pode. Toque para escolher.`
-          : 'Ninguém marcou que pode ainda. Você pode escolher qualquer pessoa do departamento.'}</p>
+          : 'Ninguém marcou que pode ainda. Você ainda pode escolher qualquer pessoa do grupo.'}</p>
       </div>
-      <div class="lista">${disp.map(cartao).join('') || vazio('Ninguém marcou “posso” nessa data.')}</div>
+      <div class="lista">${disp.map((p) => cartao(p)).join('') || vazio('Ninguém marcou “posso” nessa data.')}</div>
       ${outros.length ? `
         <details class="outros" ${outrosEscolhidos || !disp.length ? 'open' : ''}>
-          <summary>Outras pessoas do departamento (${outros.length})</summary>
-          <p class="texto-fraco">Não marcaram “posso” nessa data.</p>
-          <div class="lista">${outros.map(cartao).join('')}</div>
-        </details>` : ''}`;
+          <summary>Não marcaram que podem (${outros.length})</summary>
+          <p class="aviso-disp">${icone.alerta(16)} Essas pessoas não confirmaram disponibilidade nessa data. Se escalar, combine com elas.</p>
+          <div class="lista">${outros.map((p) => cartao(p, true)).join('')}</div>
+        </details>` : ''}
+      ${adicionar}`;
   };
 
   // ---------- Passo 2: o que cada um faz ----------
@@ -301,7 +320,7 @@ async function montarEscala(ctx, ev, dep) {
             ${p.funcoes.map((fid) => `
               <button type="button" class="chip" data-funcao="${fid}" aria-pressed="${escolha.get(p.id).has(fid)}">
                 ${escapar(nomeFuncao[fid])}
-              </button>`).join('') || '<small class="dica">Essa pessoa ainda não marcou o que faz. Ela pode marcar no perfil.</small>'}
+              </button>`).join('') || `<small class="dica">${p.provisorio ? 'Marque o que essa pessoa faz em Equipe e ajustes.' : 'Essa pessoa ainda não marcou o que faz. Ela pode marcar no perfil.'}</small>`}
           </div>
         </div>`).join('')}`;
   };
@@ -514,6 +533,18 @@ async function montarEscala(ctx, ev, dep) {
   const ligar = () => {
     document.querySelectorAll('[data-ir]').forEach((b) =>
       b.addEventListener('click', () => ir(Number(b.dataset.ir))));
+
+    // Pessoa nova, sem conta: entra no grupo e já fica escolhida
+    ligarAdicionarPessoa(document, dep.id, (nova) => {
+      const p = { id: nova.id, nome: nova.nome, avatar_url: null, provisorio: true, disponivel: false,
+        funcoes: nova.funcoes.filter((id) => nomeFuncao[id]).sort((a, b) => nomeFuncao[a].localeCompare(nomeFuncao[b])) };
+      pessoas.push(p);
+      pessoas.sort((a, b) => a.nome.localeCompare(b.nome));
+      pessoa[p.id] = p;
+      escolha.set(p.id, new Set(p.funcoes.length === 1 ? p.funcoes : []));
+      aviso(`${p.nome} entrou no grupo e na escala.`);
+      render();
+    });
 
     document.querySelectorAll('.pessoa-opcao').forEach((b) =>
       b.addEventListener('click', () => {

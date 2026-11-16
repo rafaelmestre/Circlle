@@ -1,7 +1,9 @@
 # Circlle — Documentação do Projeto
 
-*Um produto Cappstone Studio · versão 10 (nov/2026)*
+*Um produto Cappstone Studio · versão 11 (nov/2026)*
 
+> **O que mudou na v11:** o Circlle passa a ser **só para grupos de música** (bandas, ministérios de louvor, corais, orquestras). **Um grupo = uma banda**: quem quer usar **cria o grupo na hora**, sem aprovação, já com as funções de uma banda e com **primeiros passos** no Início. A banda entra por um **link de convite** (o código continua como alternativa). O coordenador pode **escalar quem ainda não tem conta** e mandar um **link pessoal** para essa pessoa criar a conta e já encontrar as escalas dela. A escala é **livre por padrão**; o grupo pode ligar **"pedir disponibilidade antes"**. O painel do Circlle virou **acompanhamento** dos grupos (sem fila de aprovação). Saíram duas tabelas que nunca foram usadas. A revisão está na seção 21.
+>
 > **O que mudou na v10:** **cadastro completo** (nome, como quer ser chamado, WhatsApp e nascimento obrigatórios; foto opcional), editável no Perfil, com o **apelido na escala** e a **foto** nos avatares. **Entrar com o Google** e **esqueci minha senha**. Quem entra pelo Google ou já tinha conta completa o cadastro no próximo acesso. A revisão está na seção 20.
 >
 > **O que mudou na v9:** o editor do repertório virou uma **playlist de verdade**: **segurar e arrastar** para mudar a ordem, **− / +** para mudar o tom de cada música e **deslizar para a esquerda** para tirar (como no WhatsApp). O mesmo gesto **exclui repertórios** na lista, com confirmação. O app instalado agora **se atualiza sozinho**, sem limpar cache nem reinstalar. E entrou a parte de **LGPD**: página de **termos de uso e privacidade**, aceite no cadastro (e para quem já tinha conta), e a exclusão de conta não deixa mais um grupo sem administrador. A revisão está na seção 19.
@@ -22,7 +24,7 @@
 
 ## 1. Visão geral
 
-PWA para organizações que trabalham com voluntários ou colaboradores organizados em escalas: projetos sociais, ONGs, bandas, coletivos, escolas, igrejas, condomínios e grupos em geral. O sistema permite abrir eventos, receber a disponibilidade dos membros, montar e publicar escalas, distribuir repertório (quando o departamento é musical) e manter a comunicação de cada departamento em um só lugar.
+PWA para **grupos de música** que trabalham com escalas: bandas, ministérios de louvor, corais, orquestras e grupos vocais (desde a v11 o foco é só esse público, para fazer o melhor app para ele). O coordenador cria o grupo na hora, chama a banda por um link, monta e publica as escalas (inclusive com quem ainda não usa o app), distribui o repertório com cifra e tom e mantém os avisos do grupo em um só lugar.
 
 ## 2. Propósito
 
@@ -143,9 +145,9 @@ Todos os usuários de teste usam e-mails `@circlle.test` (ver `supabase/seed-tes
 
 ### 7.2 Organização (contratação)
 
-- **RF05** Solicitar organização informando nome, tipo de grupo, cidade, quantidade aproximada de pessoas, WhatsApp e e-mail.
-- **RF06** Tela "em análise" para o solicitante enquanto a organização não é aprovada.
-- **RF07** Painel do Circlle para listar, aprovar, recusar e suspender organizações.
+- **RF05** (v11) Criar o grupo na hora, informando nome, tipo (banda, ministério de louvor, coral…) e cidade. Quem cria administra e coordena, e o grupo já recebe as funções de uma banda (vocal, back vocal, violão, guitarra, baixo, teclado, bateria e som). Limite de 5 grupos criados por pessoa.
+- **RF06** (v11) Primeiros passos no Início de quem coordena: chamar a banda, criar as datas e montar a primeira escala. Somem quando os três estão feitos.
+- **RF07** (v11) Painel do Circlle para acompanhar os grupos (pessoas, datas, última atividade, parados há 14 dias) e suspender ou reativar em caso de abuso.
 - **RF08** Administrador cria, desativa e reativa departamentos; administrador e coordenador renomeiam.
 - **RF09** Personalizar os rótulos (organização, departamento, evento, função), na tela do administrador. Campo vazio volta ao padrão.
 
@@ -153,7 +155,8 @@ Todos os usuários de teste usam e-mails `@circlle.test` (ver `supabase/seed-tes
 
 - **RF10** Administrador promove um membro a coordenador de um departamento e pode revogar.
 - **RF11** Coordenador edita o departamento: funções e módulo de repertório.
-- **RF12** Código do departamento, curto e fácil de digitar, com opção de gerar um novo (o anterior deixa de valer).
+- **RF12** (v11) Link de convite do grupo (`/#/g/CÓDIGO`), pronto para o WhatsApp; o código curto continua como alternativa, com opção de gerar outro (o anterior deixa de valer). Quem abre o link sem conta vê o nome do grupo na entrada e, depois do cadastro, cai direto no pedido para entrar.
+- **RF12.1** (v11) Adicionar pessoa sem conta (nome, WhatsApp opcional e funções), na Equipe ou direto na montagem da escala. Ela já pode ser escalada. O link pessoal (`/#/p/…`) faz a pessoa criar a conta e encontrar as escalas, as funções e as datas dela já no lugar.
 - **RF13** Membro busca o código e pede para entrar, marcando suas funções.
 - **RF14** Coordenador aprova ou recusa o pedido, podendo ajustar as funções.
 - **RF15** Coordenador concede ou retira, no perfil do membro, a permissão de repertório e a de montar escalas.
@@ -162,7 +165,8 @@ Todos os usuários de teste usam e-mails `@circlle.test` (ver `supabase/seed-tes
 ### 7.4 Eventos e disponibilidade
 
 - **RF17** Nova escala em três tipos: **avulsa** (uma data), **semanal** (escolhe a semana e os dias, e as datas já aparecem) ou **mensal** (escolhe o mês e os dias). Dá para tirar ou acrescentar datas antes de criar, e depois editar nome, dia, horário e local de cada data ou excluí-la.
-- **RF18** Ciclo do evento: **aberto para disponibilidade → prévia → publicado → realizado** (ou cancelado).
+- **RF18** Ciclo do evento: **a montar → prévia → publicado → realizado** (ou cancelado). Com "pedir disponibilidade antes", a data começa **aberta** para a banda marcar.
+- **RF18.1** (v11) Escala livre por padrão: o coordenador escolhe qualquer pessoa do grupo. Com "pedir disponibilidade antes" (nos ajustes do grupo), a banda é avisada ao criar datas, quem marcou aparece primeiro e quem não marcou ainda pode ser escalado, com um aviso.
 - **RF19** Membro vê as datas abertas dos seus departamentos e marca de uma vez em quais pode.
 - **RF20** Membro desmarca a disponibilidade enquanto a data está aberta.
 - **RF21** Coordenador envia a prévia e publica as escalas do mês inteiro de uma vez.
@@ -278,7 +282,17 @@ O MVP está pronto quando, com os usuários de teste, for possível:
 
 ---
 
-## 12. Banco de dados (v10)
+## 12. Banco de dados (v11)
+
+**v11**
+
+- Um grupo = uma organização + um departamento, criados juntos pela função `criar_grupo` (o app esconde essa camada; as regras de segurança continuam as mesmas). Renomear o grupo renomeia os dois.
+- `departamentos.pedir_disponibilidade` (padrão: não) e repertório sempre ligado.
+- Perfis provisórios para quem não tem conta: `perfis.provisorio` e `perfis.convite_token`. O perfil deixou de exigir uma conta (um gatilho apaga o perfil quando a conta é excluída). Funções `adicionar_pessoa`, `editar_pessoa`, `link_pessoal`, `info_convite` e `vincular_convite`; tirar do grupo quem não tem conta apaga o perfil provisório.
+- `grupos_plataforma` alimenta o painel de acompanhamento.
+- Removidas as tabelas `repertorio_evento` e `avaliacoes`, que nunca foram usadas.
+- Banco da v10: `supabase/migracao-v11.sql`, que não apaga dados de grupos.
+
 
 **v10**
 
@@ -356,6 +370,8 @@ O MVP está pronto quando, com os usuários de teste, for possível:
 | Atualização automática do app instalado | ✅ Pronto |
 | Termos de uso, privacidade e exclusão de conta (LGPD) | ✅ Pronto |
 | Cadastro completo, foto, Google e esqueci a senha | ✅ Pronto |
+| Grupo criado na hora, convite por link e pessoas sem conta | ✅ Pronto |
+| Escala livre, com "pedir disponibilidade" opcional | ✅ Pronto |
 | Sugestão automática e ensaios | ⏳ Etapa 2 |
 | Desempenho, relatórios e agenda | ⏳ Etapa 3 |
 
@@ -454,3 +470,18 @@ O MVP está pronto quando, com os usuários de teste, for possível:
 | ✅ Feito | Entrar com o Google (RF01) | O botão aparece quando o Google está ligado no Supabase |
 | ✅ Feito | Esqueci minha senha (RF01.1) | Link por e-mail e tela de senha nova |
 | ⏭️ Fica | Aniversariantes do mês | A data já está guardada; a tela fica para depois |
+
+---
+
+## 21. Revisão de requisitos (v11)
+
+| | Requisito | O que aconteceu |
+|---|---|---|
+| 🔄 Muda | Público | Só grupos de música: bandas, ministérios de louvor, corais e orquestras |
+| 🔄 Muda | Solicitar e aprovar organização (RF05–RF07) | Grupo criado na hora; o painel acompanha e suspende |
+| ✅ Feito | Primeiros passos (RF06) | Checklist no Início de quem coordena |
+| ✅ Feito | Convite por link (RF12) | Link pronto para o WhatsApp, com o código como alternativa |
+| ✅ Feito | Pessoas sem conta (RF12.1) | Escaladas na hora; link pessoal leva tudo para a conta nova |
+| ✅ Feito | Escala livre (RF18.1) | Padrão; "pedir disponibilidade antes" é opcional e avisa quem não marcou |
+| ➖ Sai | Departamentos e rótulos personalizados (RF08, RF09) | Um grupo = uma banda; os nomes são fixos (Grupo, Data, Função) |
+| ➖ Sai | Tabelas sem uso | `repertorio_evento` e `avaliacoes` |

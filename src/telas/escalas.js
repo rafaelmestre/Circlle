@@ -50,7 +50,7 @@ export async function telaEscalas(ctx, depParam) {
       </div>
 
       ${deps.length > 1 ? `
-        <div class="chips chips--rolagem" role="group" aria-label="Departamento">
+        <div class="chips chips--rolagem" role="group" aria-label="Grupo">
           ${deps.map((d) => `
             <a class="chip" href="#/escalas/${d.id}" aria-pressed="${d.id === dep.id}">${escapar(d.nome)}</a>`).join('')}
         </div>` : ''}
@@ -86,7 +86,7 @@ export async function telaEscalas(ctx, depParam) {
                       <div class="data__dia"><strong>${dia}</strong><span>${escapar(mes)}</span></div>
                       <div class="data__info">
                         <strong>${escapar(e.titulo)}</strong>
-                        <span>${escapar(formatarData(e.inicio).split(' · ')[1])} · ${disp} ${disp === 1 ? 'pode' : 'podem'} · ${esc} ${esc === 1 ? 'escalado' : 'escalados'}</span>
+                        <span>${escapar(formatarData(e.inicio).split(' · ')[1])} · ${dep.pedir_disponibilidade ? `${disp} ${disp === 1 ? 'pode' : 'podem'} · ` : ''}${esc} ${esc === 1 ? 'escalado' : 'escalados'}</span>
                       </div>
                       <span class="badge ${classe}">${rotulo}</span>
                     </div>
@@ -110,8 +110,9 @@ export async function telaEscalas(ctx, depParam) {
       }).join('') : `
         <section class="card vazio-guia">
           <h2 class="cartao__titulo">Nenhuma escala em andamento</h2>
-          <p class="texto-fraco">Crie uma escala avulsa, da semana ou do mês. A equipe marca em quais datas pode,
-          e você monta a escala com quem marcou.</p>
+          <p class="texto-fraco">${dep.pedir_disponibilidade
+            ? 'Crie uma escala avulsa, da semana ou do mês. A banda marca em quais datas pode, e você monta a escala com quem marcou.'
+            : 'Crie uma escala avulsa, da semana ou do mês e escolha quem vai em cada data.'}</p>
         </section>`}
     </main>`);
 

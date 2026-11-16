@@ -2,7 +2,7 @@
 
 <h1 align="center">Circlle</h1>
 
-> Escalas sem planilha e sem grupo de WhatsApp bagunçado: abra as datas, receba a disponibilidade dos membros, monte a escala e avise todo mundo. Um PWA para projetos sociais, ONGs, bandas, coletivos, escolas e qualquer grupo que se organiza em escalas.
+> A escala da sua banda sem planilha e sem foto perdida no WhatsApp: crie o grupo, chame a banda por um link, monte a escala (até com quem ainda não usa o app) e mande o repertório com cifra e tom. Um PWA feito só para grupos de música: bandas, ministérios de louvor, corais e orquestras.
 
 ![Status](https://img.shields.io/badge/status-em%20desenvolvimento-F59E0B)
 ![PWA](https://img.shields.io/badge/PWA-instalável-5A0FC8?logo=pwa&logoColor=white)
@@ -15,7 +15,7 @@
 
 ## 🎯 O problema
 
-Quem já coordenou voluntários conhece a rotina: a escala sai numa planilha ou numa foto no grupo, o coordenador passa dias perguntando quem pode em cada data, alguém avisa em cima da hora que não vai e ninguém sabe ao certo quem confirmou.
+Quem já coordenou uma banda ou um ministério de louvor conhece a rotina: a escala sai numa planilha ou numa foto no grupo, o coordenador passa dias perguntando quem pode em cada data, alguém avisa em cima da hora que não vai e ninguém sabe ao certo quem confirmou.
 
 E montar uma boa escala não é só rodiziar nomes. É saber quem faz o quê, colocar quem está começando ao lado de quem já tem experiência e não chamar sempre as mesmas pessoas.
 
@@ -29,12 +29,11 @@ Ferramentas de gestão costumam ser caras e feitas para grandes organizações. 
 
 ## 🔄 Como funciona
 
-1. O grupo **solicita** o Circlle e, depois de aprovado, quem solicitou vira **Administrador**.
-2. O administrador cria os **departamentos** e promove membros a **Coordenadores**, um ou mais por departamento.
-3. O coordenador configura o departamento e envia o **código** dele pelo WhatsApp.
-4. O membro digita o código, marca **o que faz** (violão, foto, reparo elétrico…) e o coordenador aprova.
-5. O coordenador **abre as datas**, e cada membro marca **"posso nestes dias"**.
-6. O coordenador monta a escala, na mão ou com **sugestão automática**, ajusta e **publica**.
+1. Quem coordena **cria o grupo na hora**, sem aprovação, e já recebe as funções de uma banda (vocal, violão, guitarra, baixo, teclado, bateria, som…).
+2. Manda o **link de convite** no grupo do WhatsApp. Quem toca no link cria a conta, marca **o que faz** e o coordenador aprova.
+3. Quem ainda não usa o app pode ser **adicionado sem conta** e já entra na escala. Depois, um **link pessoal** faz a conta dela e traz as escalas junto.
+4. O coordenador **cria as datas** e monta a escala escolhendo quem vai e o que cada um faz. Se o grupo preferir, liga **"pedir disponibilidade antes"** e a banda marca em quais datas pode.
+5. Envia a **prévia** para conferirem ou **publica** direto, e cada um confirma ou pede ajuste.
 
 ---
 
@@ -66,10 +65,11 @@ Ferramentas de gestão costumam ser caras e feitas para grandes organizações. 
 - **Entrar com o Google** ou com e-mail, e **esqueci minha senha**
 - **Cadastro completo**: como quer ser chamado (é o nome que aparece na escala), WhatsApp, nascimento e foto
 
-**Departamento**
-- Entrada por **código**, com aprovação do coordenador
+**Grupo**
+- Criado na hora, com **primeiros passos** no Início
+- Entrada por **link de convite** (ou código), com aprovação do coordenador
+- **Pessoas sem conta** na escala, com **link pessoal** para virar conta
 - **Funções de cada membro** registradas e editáveis no perfil
-- **Nomes do seu grupo**: troque “Departamento”, “Evento” e “Função” pelas palavras que vocês usam
 - **Mural de avisos**, com aviso no celular e os últimos no Início
 - **Acompanhamento de desempenho**, visível só aos coordenadores
 
@@ -88,12 +88,11 @@ Os termos são neutros, e **cada organização pode renomeá-los** para a sua pr
 
 ## 👥 Perfis
 
-**Todo mundo entra como Membro**, e o acesso é liberado por quem está acima. Os papéis valem **por departamento**: a mesma pessoa pode coordenar a Mídia e ser membro da Música.
+**Quem cria o grupo coordena**; todo mundo que entra pelo link é **Membro** até o coordenador aprovar. A mesma pessoa pode estar em mais de um grupo.
 
 | Perfil | Quem libera | O que faz |
 |---|---|---|
-| **Administrador** | Equipe do Circlle | Gerencia a organização e promove coordenadores |
-| **Coordenador** | Administrador | Configura o departamento, aprova membros, abre eventos e publica escalas |
+| **Coordenador** | Quem criou o grupo (e quem ele promover) | Convida, aprova membros, cria as datas e publica escalas |
 | **Membro** | Coordenador | Marca disponibilidade, vê suas escalas no calendário, confirma ou pede ajuste |
 | **Permissão de repertório** | Coordenador | Membro que monta e envia o repertório (coordenadores já podem sempre) |
 
@@ -139,7 +138,7 @@ cp .env.example .env   # preencha com a URL e a chave publishable do Supabase
 npm run dev
 ```
 
-**Banco de dados:** crie um projeto no [Supabase](https://supabase.com) e rode [`supabase/schema.sql`](supabase/schema.sql) no **SQL Editor**. Para dados de teste, rode também [`supabase/seed-teste.sql`](supabase/seed-teste.sql). Quem já tem dados roda só as migrações que faltam, que não apagam nada: [`migracao-v3.sql`](supabase/migracao-v3.sql) (v2 → v3), [`migracao-v4.sql`](supabase/migracao-v4.sql) (v3 → v4), [`migracao-v5.sql`](supabase/migracao-v5.sql) (lembrete na véspera, depois de publicar a função), [`migracao-v6.sql`](supabase/migracao-v6.sql) (permissão de montar escalas), [`migracao-v7.sql`](supabase/migracao-v7.sql) (repertórios) [`migracao-v8.sql`](supabase/migracao-v8.sql) (mural e cifras) [`migracao-v9.sql`](supabase/migracao-v9.sql) (termos e exclusão de conta) e [`migracao-v10.sql`](supabase/migracao-v10.sql) (cadastro completo e fotos).
+**Banco de dados:** crie um projeto no [Supabase](https://supabase.com) e rode [`supabase/schema.sql`](supabase/schema.sql) no **SQL Editor**. Para dados de teste, rode também [`supabase/seed-teste.sql`](supabase/seed-teste.sql). Quem já tem dados roda só as migrações que faltam, que não apagam nada: [`migracao-v3.sql`](supabase/migracao-v3.sql) (v2 → v3), [`migracao-v4.sql`](supabase/migracao-v4.sql) (v3 → v4), [`migracao-v5.sql`](supabase/migracao-v5.sql) (lembrete na véspera, depois de publicar a função), [`migracao-v6.sql`](supabase/migracao-v6.sql) (permissão de montar escalas), [`migracao-v7.sql`](supabase/migracao-v7.sql) (repertórios) [`migracao-v8.sql`](supabase/migracao-v8.sql) (mural e cifras) [`migracao-v9.sql`](supabase/migracao-v9.sql) (termos e exclusão de conta) [`migracao-v10.sql`](supabase/migracao-v10.sql) (cadastro completo e fotos) e [`migracao-v11.sql`](supabase/migracao-v11.sql) (grupos de música, pessoas sem conta e escala livre).
 
 **Notificações (opcional):** gere as chaves com `npx web-push generate-vapid-keys`, coloque a pública em `VITE_VAPID_PUBLIC_KEY` no `.env`, cadastre `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY` e `VAPID_SUBJECT` nos *secrets* das Edge Functions do Supabase e publique a função [`supabase/functions/notificar`](supabase/functions/notificar/index.ts) com *Verify JWT* desligado (ela confere o login sozinha). Sem isso, o app funciona normalmente, só sem os avisos.
 
@@ -169,10 +168,10 @@ Circlle/
 - [x] Protótipo navegável
 - [x] Projeto Vite + PWA, publicado no Netlify
 - [x] Banco com Row Level Security
-- [x] Documentação v10
+- [x] Documentação v11
 
 **Etapa 1: MVP**
-- [x] Solicitação e aprovação de organização
+- [x] Grupo criado na hora (antes: solicitação e aprovação)
 - [x] Papéis, departamentos e entrada por código
 - [x] Datas abertas e disponibilidade
 - [x] Escala em 3 passos, com várias funções por pessoa
@@ -193,6 +192,7 @@ Circlle/
 - [x] App instalado se atualiza sozinho
 - [x] LGPD: termos de uso, privacidade, aceite e exclusão de conta
 - [x] Cadastro completo com foto, entrar com o Google e esqueci a senha
+- [x] Só grupos de música: grupo criado na hora, convite por link, pessoas sem conta na escala e escala livre
 
 **Etapa 3**
 - [ ] Desempenho e relatórios

@@ -31,10 +31,11 @@ function proximasSemanas() {
   });
 }
 
-// Nova escala: avulsa, da semana ou do mês. As datas abrem para a equipe marcar se pode (RF17)
+// Nova escala: avulsa, da semana ou do mês. Escala livre: o coordenador monta direto.
+// Com "pedir disponibilidade", as datas abrem para a banda marcar em quais pode (RF17).
 export async function telaNovasDatas(ctx, depId) {
   const { data: dep } = await supabase.from('departamentos')
-    .select('id, nome, organizacao_id, organizacoes(termo_evento)').eq('id', depId).maybeSingle();
+    .select('id, nome, organizacao_id, pedir_disponibilidade, organizacoes(termo_evento)').eq('id', depId).maybeSingle();
   if (!dep || !ctx.escala(dep.id, dep.organizacao_id)) {
     location.hash = '#/escalas';
     return;
@@ -53,7 +54,9 @@ export async function telaNovasDatas(ctx, depId) {
       <div class="titulo">
         <p class="passo">${escapar(dep.nome)}</p>
         <h1>Nova escala</h1>
-        <p>As datas abrem para a equipe marcar em quais pode. Depois você monta a escala com quem marcou.</p>
+        <p>${dep.pedir_disponibilidade
+          ? 'As datas abrem para a banda marcar em quais pode. Depois você monta a escala com quem marcou.'
+          : 'Crie as datas e monte a escala de cada uma escolhendo quem vai.'}</p>
       </div>
 
       <form class="form card" novalidate>
@@ -92,7 +95,7 @@ export async function telaNovasDatas(ctx, depId) {
         <div class="field">
           <label for="titulo">Nome</label>
           <input id="titulo" name="titulo" required maxlength="80" placeholder="Ex.: Apresentação na praça"
-            value="${escapar(termo && termo !== 'Evento' ? termo : '')}" />
+            value="${escapar(termo && !['Evento', 'Data'].includes(termo) ? termo : '')}" />
         </div>
         <div class="linha linha--sem-margem form-duas">
           <div class="field">
@@ -210,13 +213,18 @@ export async function telaNovasDatas(ctx, depId) {
       titulo,
       local,
       inicio: new Date(`${d}T${hora}`).toISOString(),
-      status: 'aberto'
+      status: dep.pedir_disponibilidade ? 'aberto' : 'rascunho'
     }));
     const { error } = await comBotao(form.querySelector('button[type="submit"]'), () =>
       supabase.from('eventos').insert(linhas));
     if (error) return mostrarErro(form, traduzirErro(error));
-    notificar('datas_abertas', { departamento_id: dep.id, quantidade: linhas.length });
-    aviso(`Escala criada com ${linhas.length} ${linhas.length === 1 ? 'data' : 'datas'}! A equipe já pode marcar.`);
+    const n = `${linhas.length} ${linhas.length === 1 ? 'data' : 'datas'}`;
+    if (dep.pedir_disponibilidade) {
+      notificar('datas_abertas', { departamento_id: dep.id, quantidade: linhas.length });
+      aviso(`Escala criada com ${n}! A banda já pode marcar.`);
+    } else {
+      aviso(`Escala criada com ${n}! Agora toque em cada data para escolher quem vai.`);
+    }
     location.hash = `#/escalas/${dep.id}`;
   });
 }

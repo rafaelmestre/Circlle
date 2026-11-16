@@ -25,7 +25,9 @@ export async function telaInicio(ctx) {
   const depsAtivos = ctx.ativos.map((v) => v.departamento_id);
   mesVisto ??= new Date(new Date().getFullYear(), new Date().getMonth(), 1);
 
-  const [escalasRes, abertosRes, dispRes] = await Promise.all([
+  // Primeiros passos de quem coordena um grupo recém-criado
+  const meuGrupo = ctx.depsEscala.find((d) => d.coordena);
+  const [escalasRes, abertosRes, dispRes, passosRes] = await Promise.all([
     supabase.from('escalas')
       .select('id, resposta, escala_funcoes(funcoes(nome)), eventos!inner(id, titulo, local, inicio, status, departamentos(nome))')
       .eq('usuario_id', ctx.usuario.id)
@@ -34,8 +36,22 @@ export async function telaInicio(ctx) {
     depsAtivos.length
       ? supabase.from('eventos').select('id').in('departamento_id', depsAtivos).eq('status', 'aberto').gte('inicio', agora)
       : { data: [] },
-    supabase.from('disponibilidades').select('evento_id').eq('usuario_id', ctx.usuario.id)
+    supabase.from('disponibilidades').select('evento_id').eq('usuario_id', ctx.usuario.id),
+    meuGrupo && !ler(`circlle:passos-ok:${meuGrupo.id}`)
+      ? Promise.all([
+          supabase.from('membros_departamento').select('usuario_id', { count: 'exact', head: true }).eq('departamento_id', meuGrupo.id),
+          supabase.from('eventos').select('id', { count: 'exact', head: true }).eq('departamento_id', meuGrupo.id),
+          supabase.from('escalas').select('id, eventos!inner(departamento_id)', { count: 'exact', head: true }).eq('eventos.departamento_id', meuGrupo.id)
+        ])
+      : null
   ]);
+  const passos = passosRes ? {
+    convidou: (passosRes[0].count ?? 0) > 1,
+    criouDatas: (passosRes[1].count ?? 0) > 0,
+    escalou: (passosRes[2].count ?? 0) > 0
+  } : null;
+  const mostrarPassos = passos && !(passos.convidou && passos.criouDatas && passos.escalou);
+  if (passos && !mostrarPassos) gravar(`circlle:passos-ok:${meuGrupo.id}`, '1');
 
   const proximas = (escalasRes.data ?? []).sort((a, b) => a.eventos.inicio.localeCompare(b.eventos.inicio));
   const marcados = new Set((dispRes.data ?? []).map((d) => d.evento_id));
@@ -105,12 +121,31 @@ export async function telaInicio(ctx) {
         <p class="card aviso-card">Seu pedido para entrar em <strong>${pendentes.map((p) => escapar(p.departamentos.nome)).join(', ')}</strong>
         está com a coordenação. Assim que aprovarem, a escala aparece aqui.</p>` : ''}
 
+      ${mostrarPassos ? `
+        <section class="card primeiros-passos">
+          <h2 class="cartao__titulo">Primeiros passos: ${escapar(meuGrupo.nome)}</h2>
+          <ol class="primeiros-passos__lista">
+            <li class="${passos.convidou ? 'feito' : ''}">
+              <a href="#/dep/${meuGrupo.id}"><span class="primeiros-passos__marca">${passos.convidou ? icone.check(14) : '1'}</span>
+              <span><strong>Chame a banda</strong><small>Mande o link no WhatsApp ou adicione quem não usa o app.</small></span></a>
+            </li>
+            <li class="${passos.criouDatas ? 'feito' : ''}">
+              <a href="#/escalas/${meuGrupo.id}/nova"><span class="primeiros-passos__marca">${passos.criouDatas ? icone.check(14) : '2'}</span>
+              <span><strong>Crie as datas</strong><small>Uma data avulsa, os domingos do mês ou o que precisar.</small></span></a>
+            </li>
+            <li class="${passos.escalou ? 'feito' : ''}">
+              <a href="#/escalas/${meuGrupo.id}"><span class="primeiros-passos__marca">${passos.escalou ? icone.check(14) : '3'}</span>
+              <span><strong>Monte a primeira escala</strong><small>Escolha quem vai e o que cada um faz.</small></span></a>
+            </li>
+          </ol>
+        </section>` : ''}
+
       ${blocoDestaque}
 
       ${deps.length ? `
         <section class="secao escala-mes" aria-labelledby="tituloEscala">
           ${deps.length > 1 ? `
-            <div class="chips chips--rolagem" role="group" aria-label="Departamento">
+            <div class="chips chips--rolagem" role="group" aria-label="Grupo">
               ${deps.map((d) => `
                 <button type="button" class="chip" data-dep="${d.id}" aria-pressed="${d.id === depId}">${escapar(d.nome)}</button>`).join('')}
             </div>` : ''}
@@ -127,8 +162,9 @@ export async function telaInicio(ctx) {
         <section class="secao" id="muralResumo" hidden></section>` : pendentes.length ? '' : `
         <section class="card vazio-guia">
           <h2 class="cartao__titulo">Você ainda não está em nenhum grupo</h2>
-          <p class="texto-fraco">Peça o código para a coordenação e entre pelo seu perfil.</p>
-          <a class="btn btn-primary" href="#/entrar">${icone.mais()} Entrar com código</a>
+          <p class="texto-fraco">Peça o link para a coordenação ou crie o grupo da sua banda.</p>
+          <a class="btn btn-primary" href="#/entrar">${icone.mais()} Entrar num grupo</a>
+          <a class="btn btn-ghost" href="#/criar">Criar meu grupo</a>
         </section>`}
 
       ${paraMarcar ? `

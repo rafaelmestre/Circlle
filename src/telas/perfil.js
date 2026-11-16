@@ -57,9 +57,9 @@ export async function telaPerfil(ctx, recarregarContexto) {
               ${(funcoesPorDep[v.departamento_id] ?? []).map((f) => `
                 <button type="button" class="chip" data-dep="${v.departamento_id}" data-funcao="${f.id}" aria-pressed="${minhas.has(f.id)}">
                   ${escapar(f.nome)}
-                </button>`).join('') || '<small class="dica">O departamento ainda não tem funções.</small>'}
+                </button>`).join('') || '<small class="dica">O grupo ainda não tem funções.</small>'}
             </div>
-          </div>`).join('') : vazio('Você ainda não participa de nenhum departamento.')}
+          </div>`).join('') : vazio('Você ainda não participa de nenhum grupo.')}
         <a class="btn btn-ghost" href="#/entrar">${icone.mais()} Entrar com código</a>
       </section>
 

@@ -54,9 +54,14 @@ const ERROS = {
   'Email not confirmed': 'Confirme seu e-mail antes de entrar.',
   'Password should be at least 6 characters.': 'A senha precisa ter pelo menos 6 caracteres.',
   'Código inválido': 'Código não encontrado. Confira com o coordenador.',
-  'Você já participa deste departamento': 'Você já participa deste departamento.',
-  'A pessoa não faz essa função': 'Essa pessoa não faz essa função no departamento.',
-  'A pessoa não é membro ativo': 'Essa pessoa ainda não foi aprovada no departamento.',
+  'Você já participa deste departamento': 'Você já participa deste grupo.',
+  'A pessoa não faz essa função': 'Essa pessoa não faz essa função no grupo.',
+  'A pessoa não é membro ativo': 'Essa pessoa ainda não foi aprovada no grupo.',
+  'Limite de grupos por pessoa atingido': 'Você já criou o máximo de 5 grupos.',
+  'Dê um nome ao grupo': 'Dê um nome ao grupo (pelo menos 2 letras).',
+  'Este convite já foi usado': 'Este convite já foi usado ou não existe mais.',
+  'Apenas quem monta escalas': 'Só quem monta as escalas pode fazer isso.',
+  'Essa pessoa já tem conta': 'Essa pessoa já tem conta no Circlle.',
   'Apenas o administrador define coordenadores': 'Só o administrador pode definir coordenadores.',
   'Limite de departamentos do plano atingido': 'O limite de departamentos do plano foi atingido.',
   'Conte o motivo do ajuste': 'Conte o motivo do ajuste.',
@@ -177,7 +182,7 @@ export function badgeResposta(resposta) {
 }
 
 export const STATUS_EVENTO = {
-  rascunho: ['Rascunho', 'badge--reassign'],
+  rascunho: ['A montar', 'badge--reassign'],
   aberto: ['Aberto', 'badge--pending'],
   previa: ['Prévia', 'badge--reassign'],
   publicado: ['Publicado', 'badge--confirmed'],
@@ -206,9 +211,9 @@ const minuscula = (t) => t.charAt(0).toLowerCase() + t.slice(1);
 // Termos de uma organização, com plural e minúsculas prontos para o texto
 export function termos(org) {
   const base = {
-    org: org?.termo_organizacao || 'Organização',
-    dep: org?.termo_departamento || 'Departamento',
-    evento: org?.termo_evento || 'Evento',
+    org: 'Grupo',
+    dep: 'Grupo',
+    evento: org?.termo_evento && org.termo_evento !== 'Evento' ? org.termo_evento : 'Data',
     funcao: org?.termo_funcao || 'Função'
   };
   const t = { ...base, deps: plural(base.dep), eventos: plural(base.evento), funcoes: plural(base.funcao) };
@@ -247,7 +252,7 @@ export function itensNav(ctx) {
   if (ctx.plataforma) {
     const itens = [
       { id: 'inicio', rota: '#/', rotulo: 'Dashboard', icone: icone.grafico() },
-      { id: 'plataforma', rota: '#/plataforma', rotulo: 'Assinantes', icone: icone.circlle() }
+      { id: 'plataforma', rota: '#/plataforma', rotulo: 'Grupos', icone: icone.circlle() }
     ];
     if (ctx.vinculos.length) itens.push({ id: 'calendario', rota: '#/calendario', rotulo: 'Calendário', icone: icone.calendario() });
     return itens;
@@ -256,9 +261,6 @@ export function itensNav(ctx) {
   if (ctx.depsEscala.length) itens.push({ id: 'escalas', rota: '#/escalas', rotulo: 'Escalas', icone: icone.escalas() });
   itens.push({ id: 'calendario', rota: '#/calendario', rotulo: 'Calendário', icone: icone.calendario() });
   if (ctx.depsRepertorio.length) itens.push({ id: 'repertorios', rota: '#/repertorios', rotulo: 'Repertórios', icone: icone.musica() });
-  if (ctx.orgsAdmin.length) {
-    itens.push({ id: 'org', rota: `#/org/${ctx.orgsAdmin[0].id}`, rotulo: ctx.orgsAdmin[0].termo_organizacao, icone: icone.org() });
-  }
   return itens;
 }
 

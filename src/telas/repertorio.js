@@ -120,7 +120,7 @@ export async function telaRepertorio(ctx, repId, rolagem = 0) {
                   ${aqui ? `${icone.check(16)} Usando` : outro ? 'Trocar' : 'Usar'}
                 </button>
               </div>`;
-          }).join('') || vazio('Nenhuma data por vir neste departamento.')}
+          }).join('') || vazio('Nenhuma data por vir neste grupo.')}
         </div>
       </section>
 

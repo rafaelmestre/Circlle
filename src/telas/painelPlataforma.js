@@ -54,10 +54,10 @@ export async function htmlPainelPlataforma() {
 
       <div class="kpis">
         ${tile('Grupos ativos', p.grupos.ativos,
-          p.grupos.em_analise ? `<span class="badge badge--pending">${p.grupos.em_analise} em análise</span>` : 'nenhum em análise',
+          p.grupos.suspensos ? `${p.grupos.suspensos} ${p.grupos.suspensos === 1 ? 'suspenso' : 'suspensos'}` : 'nenhum suspenso',
           '#/plataforma')}
-        ${tile('Departamentos', p.departamentos)}
-        ${tile('Pessoas no app', p.pessoas, `${numero.format(p.membros_ativos)} em departamentos`)}
+        ${tile('Pessoas com conta', p.pessoas, `${numero.format(p.membros_ativos)} em grupos`)}
+        ${tile('Escaladas sem conta', p.sem_conta ?? 0, 'podem virar conta pelo link pessoal')}
         ${tile('Pedidos para entrar', p.pedidos_pendentes, 'aguardando coordenadores')}
         ${tile('Datas nos próximos 30 dias', p.datas_proximas)}
         ${tile('Escalas publicadas', p.escalas_publicadas_30d, 'janela de 30 dias')}
@@ -83,13 +83,12 @@ export async function htmlPainelPlataforma() {
           <div class="tabela-rolagem">
             <table class="tabela">
               <thead>
-                <tr><th scope="col">Grupo</th><th scope="col">Deps.</th><th scope="col">Membros</th><th scope="col">Datas 30d</th><th scope="col">Atividade</th></tr>
+                <tr><th scope="col">Grupo</th><th scope="col">Membros</th><th scope="col">Datas 30d</th><th scope="col">Atividade</th></tr>
               </thead>
               <tbody>
                 ${grupos.map((g) => `
                   <tr>
                     <th scope="row">${escapar(g.nome)}<small>${escapar(g.cidade ?? '')}</small></th>
-                    <td>${g.departamentos}</td>
                     <td>${g.membros}</td>
                     <td>${g.datas_30d}</td>
                     <td>${haQuanto(g.ultima_atividade)}</td>

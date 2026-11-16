@@ -7,14 +7,14 @@ import { telaEntrada, telaNovaSenha } from './telas/entrada.js';
 import { telaCompletarPerfil } from './telas/completarPerfil.js';
 import { perfilCompleto } from './lib/formPerfil.js';
 import { telaBoasVindas } from './telas/boasVindas.js';
-import { telaSolicitar, telaEmAnalise } from './telas/solicitar.js';
+import { telaCriarGrupo } from './telas/criarGrupo.js';
+import { guardarConvite, conviteGuardado, esquecerConvite, resumoConvite } from './lib/convite.js';
 import { telaEntrarCodigo } from './telas/entrarCodigo.js';
 import { telaInicio } from './telas/inicio.js';
 import { telaDepartamento } from './telas/departamento.js';
 import { telaNovasDatas } from './telas/novasDatas.js';
 import { telaEvento } from './telas/evento.js';
 import { telaPerfil } from './telas/perfil.js';
-import { telaOrganizacao } from './telas/organizacao.js';
 import { telaPlataforma } from './telas/plataforma.js';
 import { telaCalendario } from './telas/calendario.js';
 import { telaEscalas } from './telas/escalas.js';
@@ -73,7 +73,13 @@ function rotear() {
   const [rota, id, sub, extra] = location.hash.replace(/^#\/?/, '').split('/');
   // Termos: abrem com ou sem login
   if (rota === 'termos') return telaTermos({ voltar: usuario ? '#/perfil' : '#/' });
-  if (!usuario) return telaEntrada();
+  // Convite por link sem estar logado: guarda e mostra o convite na entrada
+  if (!usuario && (rota === 'g' || rota === 'p') && id) {
+    guardarConvite(rota, decodeURIComponent(id));
+    history.replaceState(null, '', location.pathname);
+    return entradaComConvite();
+  }
+  if (!usuario) return conviteGuardado() ? entradaComConvite() : telaEntrada();
   if (recuperandoSenha) return mostrarNovaSenha();
   if (!ctx) return;
 
@@ -83,12 +89,19 @@ function rotear() {
   if (!perfilCompleto(ctx.perfil)) return telaCompletarPerfil(ctx, () => irPara('#/'));
 
   // Telas que funcionam com ou sem vínculo
+  // Convite guardado antes do cadastro: segue de onde parou
+  const pendente = conviteGuardado();
+  if (pendente && rota !== 'g' && rota !== 'p') {
+    esquecerConvite();
+    return location.replace(`#/${pendente.tipo}/${encodeURIComponent(pendente.valor)}`);
+  }
+  if (rota === 'p' && id) return usarLinkPessoal(decodeURIComponent(id));
+  if (rota === 'g' && id) return telaEntrarCodigo(ctx, () => irPara('#/'), decodeURIComponent(id));
   if (rota === 'entrar') return telaEntrarCodigo(ctx, () => irPara('#/'));
-  if (rota === 'solicitar') return telaSolicitar(ctx, () => irPara('#/'));
+  if (rota === 'criar' || rota === 'solicitar') return telaCriarGrupo(ctx, () => irPara('#/'));
 
   const temAcesso = ctx.vinculos.length || ctx.orgsAdmin.length || ctx.plataforma;
   if (!temAcesso) {
-    if (ctx.solicitacoes.some((s) => s.status === 'em_analise')) return telaEmAnalise(ctx);
     return telaBoasVindas(ctx);
   }
 
@@ -115,12 +128,33 @@ function rotear() {
     case 'perfil':
       return telaPerfil(ctx, atualizar);
     case 'org':
-      return telaOrganizacao(ctx, id, atualizar);
+      return location.replace('#/escalas');
     case 'plataforma':
       return telaPlataforma(ctx);
     default:
       return ctx.plataforma ? telaDashboard(ctx) : telaInicio(ctx);
   }
+}
+
+// Entrada de quem chegou por um convite: mostra para qual grupo
+let resumoAtual = null;
+function entradaComConvite() {
+  telaEntrada('criar', resumoAtual ?? true);
+  if (resumoAtual) return;
+  resumoConvite(conviteGuardado()).then((r) => {
+    resumoAtual = r;
+    if (r && !usuario && document.querySelector('.auth')) telaEntrada('criar', r);
+  });
+}
+
+// Link pessoal: a pessoa que o coordenador pôs na escala vira esta conta
+async function usarLinkPessoal(token) {
+  esquecerConvite();
+  carregando();
+  const { error } = await supabase.rpc('vincular_convite', { p_token: token });
+  if (error) aviso(traduzirErro(error));
+  else aviso('Pronto! Suas escalas já estão aqui.');
+  irPara('#/');
 }
 
 function mostrarNovaSenha() {
@@ -170,8 +204,9 @@ supabase.auth.onAuthStateChange((evento, sessao) => {
       usuario = null;
       ctx = null;
       if (location.hash === '#/termos') return telaTermos({ voltar: '#/' });
+      if (/^#\/(g|p)\/./.test(location.hash)) return rotear();
       if (location.hash) history.replaceState(null, '', location.pathname);
-      return telaEntrada();
+      return conviteGuardado() ? entradaComConvite() : telaEntrada();
     }
     // Ignora renovações de token: só recarrega quando a pessoa muda
     if (usuario?.id === novoUsuario.id && evento !== 'USER_UPDATED') return;

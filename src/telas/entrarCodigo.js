@@ -8,9 +8,10 @@ export function normalizarCodigo(texto) {
   return limpo.length > 3 ? `${limpo.slice(0, 3)}-${limpo.slice(3, 7)}` : limpo;
 }
 
-// Entrar num departamento pelo código, marcando o que faz (RF13)
-export function telaEntrarCodigo(ctx, aoEntrar) {
+// Entrar num grupo pelo link ou pelo código, marcando o que faz (RF13)
+export function telaEntrarCodigo(ctx, aoEntrar, codigoInicial = '') {
   let departamento = null;
+  let buscarSozinho = Boolean(codigoInicial);
   const escolhidas = new Set();
 
   const render = () => {
@@ -18,16 +19,16 @@ export function telaEntrarCodigo(ctx, aoEntrar) {
       <main class="tela">
         ${botaoVoltar('#/')}
         <div class="titulo">
-          <h1>Entrar com código</h1>
-          <p>Digite o código que o coordenador do departamento te mandou.</p>
+          <h1>Entrar num grupo</h1>
+          <p>Digite o código que o coordenador te mandou. Se recebeu um link, é só tocar nele.</p>
         </div>
 
         <form class="form card" id="buscar" novalidate>
           <div class="field">
-            <label for="codigo">Código do departamento</label>
+            <label for="codigo">Código do grupo</label>
             <input id="codigo" name="codigo" class="input-codigo" required maxlength="8"
               autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="ABC-1234"
-              value="${escapar(departamento?.codigo ?? '')}" />
+              value="${escapar(departamento?.codigo ?? normalizarCodigo(codigoInicial))}" />
           </div>
           ${departamento ? '' : '<button class="btn btn-primary" type="submit">Buscar</button>'}
           <p class="msg" role="status" aria-live="polite"></p>
@@ -36,11 +37,10 @@ export function telaEntrarCodigo(ctx, aoEntrar) {
         ${departamento ? `
           <form class="form card" id="pedir" novalidate>
             <div>
-              <p class="equipe__org">${escapar(departamento.organizacao)}</p>
               <h2 class="cartao__titulo">${escapar(departamento.nome)}</h2>
             </div>
             <fieldset class="field">
-              <legend>O que você faz aqui? Marque tudo que se aplica.</legend>
+              <legend>O que você faz no grupo? Marque tudo que se aplica.</legend>
               <div class="chips">
                 ${departamento.funcoes.map((f) => `
                   <button type="button" class="chip" data-funcao="${f.id}" aria-pressed="${escolhidas.has(f.id)}">
@@ -63,6 +63,10 @@ export function telaEntrarCodigo(ctx, aoEntrar) {
 
     if (!departamento) {
       campo.focus();
+      if (buscarSozinho) {
+        buscarSozinho = false;
+        queueMicrotask(() => buscar.requestSubmit());
+      }
       buscar.addEventListener('submit', async (e) => {
         e.preventDefault();
         limparMsg(buscar);
