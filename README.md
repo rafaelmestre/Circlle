@@ -202,7 +202,8 @@ Circlle/
 
 ## 👤 Autor
 
-**Rafael Mestre A. Araujo**: estudante de Análise e Desenvolvimento de Sistemas (PUC Minas), coordenador de escalas de música voluntária e fundador da **Cappstone Studio**.
+**Rafael Mestre A. Araujo**: estudante de Análise e Desenvolvimento de Sistemas (PUC Minas), coordenador de escalas de música voluntária e fundador da **Rafael Studio**.
 
 - GitHub: [@rafaelmestre](https://github.com/rafaelmestre)
-- Instagram: [@cappstonestudio](https://instagram.com/cappstonestudio)
+- Site: [rafaelmestre.com.br](https://www.rafaelmestre.com.br)
+- Contato do Circlle: [circlle@rafaelmestre.com.br](mailto:circlle@rafaelmestre.com.br)

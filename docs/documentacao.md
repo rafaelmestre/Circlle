@@ -1,6 +1,6 @@
 # Circlle — Documentação do Projeto
 
-*Um produto Cappstone Studio · versão 11 (nov/2026)*
+*Um produto Rafael Studio · versão 11 (nov/2026)*
 
 > **O que mudou na v11:** o Circlle passa a ser **só para grupos de música** (bandas, ministérios de louvor, corais, orquestras). **Um grupo = uma banda**: quem quer usar **cria o grupo na hora**, sem aprovação, já com as funções de uma banda e com **primeiros passos** no Início. A banda entra por um **link de convite** (o código continua como alternativa). O coordenador pode **escalar quem ainda não tem conta** e mandar um **link pessoal** para essa pessoa criar a conta e já encontrar as escalas dela. A escala é **livre por padrão**; o grupo pode ligar **"pedir disponibilidade antes"**. O painel do Circlle virou **acompanhamento** dos grupos (sem fila de aprovação). Saíram duas tabelas que nunca foram usadas. A revisão está na seção 21.
 >
@@ -28,7 +28,7 @@ PWA para **grupos de música** que trabalham com escalas: bandas, ministérios d
 
 ## 2. Propósito
 
-Dar a organizações pequenas, de periferia e de baixa renda uma ferramenta de gestão que normalmente só grandes organizações conseguem pagar. O Circlle é contratado pela organização, com valor acessível, e serve também de vitrine da Cappstone Studio.
+Dar a bandas, ministérios de louvor, corais e grupos de música, inclusive os pequenos e de periferia, uma ferramenta de escala que normalmente só grandes organizações conseguem pagar. O Circlle é gratuito para quem participa do grupo e serve também de vitrine da Rafael Studio (rafaelmestre.com.br).
 
 ---
 

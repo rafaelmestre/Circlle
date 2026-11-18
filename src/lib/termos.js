@@ -1,13 +1,13 @@
 // Termos de uso e política de privacidade do Circlle (LGPD)
 // Ao mudar o texto de forma relevante, troque a VERSÃO: todo mundo aceita de novo no próximo acesso.
 
-export const TERMOS_VERSAO = '2026-11-14b';
-export const TERMOS_DATA = '14 de novembro de 2026';
+export const TERMOS_VERSAO = '2026-11-17';
+export const TERMOS_DATA = '17 de novembro de 2026';
 
-// Canal para pedidos sobre dados pessoais (troque por um e-mail quando tiver um)
+// Canal para dúvidas e pedidos sobre dados pessoais
 export const CONTATO = {
-  rotulo: 'Instagram @cappstonestudio',
-  link: 'https://instagram.com/cappstonestudio'
+  rotulo: 'circlle@rafaelmestre.com.br',
+  link: 'mailto:circlle@rafaelmestre.com.br'
 };
 
 const contato = `<a href="${CONTATO.link}" target="_blank" rel="noopener">${CONTATO.rotulo}</a>`;
@@ -16,7 +16,7 @@ export const textoTermos = () => `
   <p class="documento__data">Última atualização: ${TERMOS_DATA}</p>
 
   <p>O Circlle é um app gratuito para organizar escalas de equipes voluntárias, feito pela
-  <strong>Cappstone Studio</strong>. Este texto explica, em linguagem simples, as regras de uso
+  <strong>Rafael Studio</strong>. Este texto explica, em linguagem simples, as regras de uso
   e o que acontece com os seus dados, conforme a Lei Geral de Proteção de Dados (Lei 13.709/2018).</p>
 
   <h2 id="uso">Termos de uso</h2>
@@ -101,4 +101,4 @@ export const textoTermos = () => `
   de novo para continuar.</p>
 
   <h3>13. Contato</h3>
-  <p>Cappstone Studio, responsável pelo Circlle: ${contato}.</p>`;
+  <p>Rafael Studio (Rafael Mestre), responsável pelo Circlle: ${contato}.</p>`;
